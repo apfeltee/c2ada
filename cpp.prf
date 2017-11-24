@@ -1,0 +1,32 @@
+%{
+/* $Source: /home/CVSROOT/c2ada/cpp.prf,v $ */
+/* $Revision: 1.1.1.1 $  $Date: 1999/02/02 12:01:51 $  */
+
+#include <sys/types.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "files.h"
+#include "hash.h"
+#include "buffer.h"
+#include "cpp.h"
+#include "cpp_hide.h"
+%}
+struct resword {char *name; int token;};
+%%
+define,         Define
+elif,           Elif
+else,           Else
+endif,          Endif
+error,          Error
+ident,          Ident
+if,             If
+ifdef,          Ifdef
+ifndef,         Ifndef
+include,        Include
+line,			Line
+pragma,         Pragma
+undef,          Undef
+%%

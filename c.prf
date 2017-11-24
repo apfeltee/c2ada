@@ -1,0 +1,52 @@
+%{
+/* $Source: /home/CVSROOT/c2ada/c.prf,v $ */
+/* $Revision: 1.1.1.1 $  $Date: 1999/02/02 12:01:51 $  */
+#include <sys/types.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "host.h"
+#include "files.h"
+#include "hash.h"
+#include "il.h"
+#include "stmt.h"
+#include "y.tab.h"
+%}
+struct resword {char *name; short token;};
+%%
+auto,           AUTO
+break,          BREAK
+case,           CASE
+char,		CHAR
+const,          CONST
+continue,       CONTINUE
+default,        DEFAULT
+do,             DO
+double,		DOUBLE
+else,           ELSE
+enum,           ENUM
+extern,         EXTERN
+float,		FLOAT
+for,            FOR
+goto,           GOTO
+if,             IF
+inline,		INLINE
+int,		INT
+long,           LONG
+register,       REGISTER
+return,         RETURN
+short,          SHORT
+signed,         SIGNED
+sizeof,         SIZEOF
+static,         STATIC
+struct,         STRUCT
+switch,         SWITCH
+typedef,        TYPEDEF
+union,          UNION
+unsigned,       UNSIGNED
+void,		VOID
+volatile,       VOLATILE
+while,          WHILE
+%%

@@ -1,5 +1,8 @@
-# Object file
 *.o
-
-# Ada Library Information
 *.ali
+*.exe
+*.d
+*.pyc
+*.out
+*.stackdump
+*.core
