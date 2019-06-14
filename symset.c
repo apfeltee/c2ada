@@ -45,9 +45,11 @@ symset_init(void)
 {
 
     /* We have to set PYTHONPATH before initializing Python. */
-    setenv("PYTHONPATH", getpythonpath(), 1);
+    //setenv("PYTHONPATH", getpythonpath(), 1);
 
     Py_Initialize();
+
+    //PyRun_SimpleString("import sys, pprint; pprint.pprint(sys.path);");
 
     pymod_PrimSymbol = Py_InitModule("primSymbol", PrimSymbolMethods);
     py_primSymbol_undone =

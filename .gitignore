@@ -1,8 +1,14 @@
 *.o
 *.ali
+*.a
 *.exe
 *.d
 *.pyc
 *.out
-*.stackdump
 *.core
+
+# these files are created by cygwin in case of abnormal termination
+*.stackdump
+
+# folder(s) created by c2ada
+bindings
