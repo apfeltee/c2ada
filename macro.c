@@ -2,16 +2,7 @@
 #include <memory.h>
 #include <stdio.h>
 #include <sys/types.h>
-
-#include "errors.h"
-#include "files.h"
-#include "hash.h"
-#include "buffer.h"
-#include "cpp.h"
-#include "cpp_hide.h"
-#include "allocate.h"
-#include "units.h"
-#include "comment.h"
+#include "c2ada.h"
 
 /* from scan.c */
 extern comment_block_pt fetch_comment_block(void);
@@ -23,6 +14,9 @@ extern comment_block_pt fetch_comment_block(void);
     #define MACRO_TABLE_SIZE 512
 #endif
 
+#define STRMAC(a) STRMAC__NEXT(a)
+#define STRMAC__NEXT(a) #a
+
 macro_t* macro_list_head;
 static macro_t* macro_list_tail;
 static macro_t* hash_table[MACRO_TABLE_SIZE];
@@ -31,84 +25,116 @@ struct autodefs
 {
     char* name;
     char* value;
-} deftab[] = { { "__ANSI_CPP__", "1" },
-               { "_LANGUAGE_C", "1" },
-               { "LANGUAGE_C", "1" },
-               { "__STDC__", "1" },
+} deftab[] = {
+    {"__ANSI_CPP__", "1"},
+    {"_LANGUAGE_C", "1"},
+    {"LANGUAGE_C", "1"},
+    {"__STDC__", "1"},
+
+    #ifdef __IEEE_BIG_ENDIAN
+        {"__IEEE_BIG_ENDIAN", "1"},
+    #else
+        {"__IEEE_LITTLE_ENDIAN", "1"},
+    #endif
 
 #ifdef _IBMR2
-               { "_IBMR2", "1" },
+    {"_IBMR2", "1"},
 #endif
 #ifdef _AIX
-               { "_AIX", "1" },
+    {"_AIX", "1"},
 #endif
 #ifdef _AIX32
-               { "_AIX32", "1" },
+    {"_AIX32", "1"},
 #endif
 #ifdef host_mips
-               { "host_mips", "1" },
+    {"host_mips", "1"},
 #endif
 #ifdef mips
-               { "mips", "1" },
+    {"mips", "1"},
 #endif
 #ifdef MIPSEB
-               { "MIPSEB", "1" },
+    {"MIPSEB", "1"},
 #endif
 #ifdef sgi
-               { "sgi", "1" },
+    {"sgi", "1"},
 #endif
 #ifdef sun
-               { "sun", "1" },
+    {"sun", "1"},
 #endif
 #ifdef __sun
-               { "__sun", "1" },
+    {"__sun", "1"},
 #endif
 #ifdef sparc
-               { "sparc", "1" },
+    {"sparc", "1"},
 #endif
 #ifdef __sparc
-               { "__sparc", "1" },
+    {"__sparc", "1"},
 #endif
 #ifdef SVR3
-               { "SVR3", "1" },
+    {"SVR3", "1"},
 #endif
 #ifndef __SVR4
-               { "__SVR4", "1" },
+    {"__SVR4", "1"},
 #endif
 #ifdef SYSTYPE_SYSV
-               { "SYSTYPE_SYSV", "1" },
+    {"SYSTYPE_SYSV", "1"},
 #endif
 #ifdef _MIPSEB
-               { "_MIPSEB", "1" },
+    {"_MIPSEB", "1"},
 #endif
 #ifdef _POSIX_SOURCE
-               { "_POSIX_SOURCE", "1" },
+    {"_POSIX_SOURCE", "1"},
 #endif
 #ifdef _SYSTYPE_SYSV
-               { "_SYSTYPE_SYSV", "1" },
+    {"_SYSTYPE_SYSV", "1"},
 #endif
 #ifdef __EXTENSIONS__
-               { "__EXTENSIONS__", "1" },
+    {"__EXTENSIONS__", "1"},
 #endif
 #ifdef __host_mips
-               { "__host_mips", "1" },
+    {"__host_mips", "1"},
 #endif
 #ifdef __mips
-               { "__mips", "1" },
+    {"__mips", "1"},
 #endif
 #ifdef __sgi
-               { "__sgi", "1" },
+    {"__sgi", "1"},
 #endif
 #ifdef __SVR3
-               { "__SVR3", "1" },
+    {"__SVR3", "1"},
 #endif
 #ifdef unix
-               { "unix", "1" },
+    {"unix", "1"},
 #endif
 #ifdef __unix
-               { "__unix", "1" },
+    {"__unix", "1"},
 #endif
-               { NULL, NULL } };
+#ifdef __unix__
+    {"__unix__", "1"},
+#endif
+#ifdef __linux
+    {"__linux", "1"},
+#endif
+#ifdef __linux__
+    {"__linux__", "1"},
+#endif
+#ifdef __CYGWIN__
+    {"__CYGWIN__", STRMAC(__CYGWIN__)},
+#endif
+#ifdef __CYGWIN32__
+    {"__CYGWIN32__", STRMAC(__CYGWIN32__)},
+#endif
+#ifdef __CYGWIN64__
+    {"__CYGWIN64__", STRMAC(__CYGWIN64__)},
+#endif
+#ifdef _MSC_VER
+    {"_MSC_VER", STRMAC(_MSC_VER)},
+#endif
+
+    #include "defaultmacros.h"
+
+    { NULL, NULL }
+};
 
 static void macro_add_to_list(m) macro_t* m;
 {

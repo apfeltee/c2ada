@@ -85,7 +85,7 @@ PYTHON_SCRIPTS_PATH = $(HERE):$(PYTHON_LIB)
 DEF_PPATH	= -DPPATH=\"$(PYTHON_SCRIPTS_PATH)\"
 
 GNU_C_OPTS	= -g3 -ggdb -Wall -Wimplicit -Wreturn-type
-CC		= gcc
+CC		= gcc -w
 CFLAGS		= $(GNU_C_OPTS) -DDEBUG $(PYTHONINCLUDES) $(DEF_PPATH)
 LINKER		= gcc
 
@@ -198,7 +198,6 @@ all::		make c2ada
 %c%y:;
 %o%y:;
 
-make::		hostinfo.h
 make::		cpp_perf.c
 make::		ada_perf.c
 make::		c_perf.c
@@ -287,7 +286,7 @@ ada_perf.c:	ada.prf
 cpp_perf.c:	cpp.prf
 		$(GPERF) -N cpp_keyword -t -p cpp.prf > $@
 
-cpp_perf.o: cpp_perf.c files.h hash.h cpp.h buffer.h
+cpp_perf.o: cpp_perf.c
 ada_perf.o: ada_perf.c
 
 y.tab.h:	grammar.y

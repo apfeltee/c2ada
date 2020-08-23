@@ -8,21 +8,16 @@
  * additional declarations, preceding statements, or following (post-)
  * statements are required in the transformation.
  */
+#include "c2ada.h"
 
-#include "boolean.h"
-#include "context.h"
-#include "allocate.h"
-#include "types.h"
-#include "stmt.h"
-#include "stab.h"
 
 struct context_t
 {
-    boolean changed_pre : 1;
-    boolean changed_post : 1;
-    boolean added_decls : 1;
+    bool changed_pre : 1;
+    bool changed_post : 1;
+    bool added_decls : 1;
 
-    symbol_pt decls;
+    symbol_t* decls;
     stmt_pt pre_stmts;
     stmt_pt post_stmts;
 
@@ -48,17 +43,17 @@ void free_context(ctxt_pt ctxt)
     deallocate(ctxt);
 }
 
-boolean changed_pre(ctxt_pt ctxt)
+bool changed_pre(ctxt_pt ctxt)
 {
     return ctxt->changed_pre;
 }
 
-boolean changed_post(ctxt_pt ctxt)
+bool changed_post(ctxt_pt ctxt)
 {
     return ctxt->changed_post;
 }
 
-boolean added_decls(ctxt_pt ctxt)
+bool added_decls(ctxt_pt ctxt)
 {
     return ctxt->added_decls;
 }
@@ -132,9 +127,9 @@ void append_post(ctxt_pt ctxt, stmt_pt stmt)
     ctxt->changed_post = TRUE;
 }
 
-static void set_decls_scope(symbol_pt decls, scope_id_t scope)
+static void set_decls_scope(symbol_t* decls, scope_id_t scope)
 {
-    symbol_pt sym;
+    symbol_t* sym;
     int level = scope_level(scope);
     for(sym = decls; sym; sym = sym->sym_parse_list)
     {
@@ -143,7 +138,7 @@ static void set_decls_scope(symbol_pt decls, scope_id_t scope)
     }
 }
 
-symbol_pt decls(ctxt_pt ctxt, int scope_id)
+symbol_t* decls(ctxt_pt ctxt, int scope_id)
 {
     if(scope_id)
     {
@@ -155,7 +150,7 @@ symbol_pt decls(ctxt_pt ctxt, int scope_id)
     return ctxt->decls;
 }
 
-void set_decls(ctxt_pt ctxt, symbol_pt decls)
+void set_decls(ctxt_pt ctxt, symbol_t* decls)
 {
     if(!decls)
         return;
@@ -163,7 +158,7 @@ void set_decls(ctxt_pt ctxt, symbol_pt decls)
     ctxt->decls = decls;
 }
 
-void append_decls(ctxt_pt ctxt, symbol_pt decls)
+void append_decls(ctxt_pt ctxt, symbol_t* decls)
 {
     if(!decls)
         return;
@@ -172,7 +167,7 @@ void append_decls(ctxt_pt ctxt, symbol_pt decls)
     ctxt->added_decls = TRUE;
 }
 
-void append_decl(ctxt_pt ctxt, symbol_pt decl)
+void append_decl(ctxt_pt ctxt, symbol_t* decl)
 {
     append_decls(ctxt, decl);
 }

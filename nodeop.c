@@ -3,17 +3,7 @@
 #include <memory.h>
 #include <sys/types.h>
 #include <string.h>
-
-#include "errors.h"
-#include "host.h"
-#include "files.h"
-#include "hash.h"
-#include "il.h"
-#include "allocate.h"
-#include "types.h"
-#include "macro.h"
-
-#include "nodeop.h"
+#include "c2ada.h"
 
 #undef NULL
 #define NULL 0
@@ -32,7 +22,7 @@ typedef enum
     _Other
 } node_class_t;
 
-static boolean is_const_int(node_pt n)
+static bool is_const_int(node_pt n)
 {
     assert(n != NULL);
     switch(n->node_kind)
@@ -52,7 +42,7 @@ static boolean is_const_int(node_pt n)
     }
 }
 
-static boolean is_const_fp(node_pt n)
+static bool is_const_fp(node_pt n)
 {
     assert(n != NULL);
     switch(n->node_kind)
@@ -253,7 +243,7 @@ node_pt* node_iter_tail(node_iter_t* iter)
     return iter->tail;
 }
 
-boolean is_null_ptr_value(node_pt e)
+bool is_null_ptr_value(node_pt e)
 {
     if(e->node_kind == _Int_Number && e->node.ival == 0)
         return TRUE;

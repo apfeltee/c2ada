@@ -5,15 +5,8 @@
 #include <stdio.h>
 #include <limits.h>
 #include <string.h>
-#include "lowlevel.h"
-#include "errors.h"
-#include "printf.h"
-#include "files.h"
-#include "hash.h"
-#include "buffer.h"
-#include "cpp.h"
-#include "cpp_hide.h"
-#include "allocate.h"
+#include "c2ada.h"
+
 
 #undef NULL
 #define NULL 0
@@ -320,7 +313,7 @@ static void do_define(name) char* name;
 
     if(val == NULL)
     {
-        macro_def(name, "1", 1, -1, NULL, 0);
+        macro_def(name, "1", 1, -1, NULL, 0, NULL);
         return;
     }
 
@@ -332,7 +325,7 @@ static void do_define(name) char* name;
     }
 
     *p = 0;
-    macro_def(new_string(buf), val, strlen(val), -1, NULL, 0);
+    macro_def(new_string(buf), val, strlen(val), -1, NULL, 0, NULL);
 }
 
 static int scan_to_end(c) int c;

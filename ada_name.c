@@ -8,15 +8,8 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <sys/types.h>
+#include "c2ada.h"
 
-#include "errors.h"
-#include "host.h"
-#include "allocate.h"
-#include "ada_name.h"
-#include "hash.h"
-#include "files.h"
-#include "il.h"
-#include "configure.h"
 
 extern char* ada_keyword(char*, int);
 extern int auto_package;
@@ -56,7 +49,7 @@ static uniq_name_t* new_uniq_name()
     return &free[free_index++];
 }
 
-boolean is_ada_keyword(char* name)
+bool is_ada_keyword(char* name)
 /*
  * Determine if argument is an Ada keyword.
  */
@@ -80,7 +73,7 @@ boolean is_ada_keyword(char* name)
     return (ada_keyword(buf, (int)(p - buf))) ? 1 : 0;
 }
 
-boolean is_reserved_id(char* name)
+bool is_reserved_id(char* name)
 /*
  * Check if this is one of the configured reserved words.
  */

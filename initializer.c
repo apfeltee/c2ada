@@ -4,17 +4,7 @@
 /* Routines concerned with fixing and generating variable initializers */
 
 #include <assert.h>
-
-#include "il.h"
-#include "errors.h"
-#include "stmt.h"
-#include "gen.h"
-#include "types.h"
-#include "gen_expr.h"
-#include "fix_stmt.h"
-#include "format.h"
-#include "anonymous.h"
-#include "initializer.h"
+#include "c2ada.h"
 
 void gen_zero(typeinfo_pt t)
 /* generate a 0 literal of the appropriate type */
@@ -41,10 +31,10 @@ void gen_zero(typeinfo_pt t)
             break;
         case struct_of:
         {
-            symbol_pt tsym = t->type_base;
-            symbol_pt fields = tsym->sym_tags;
+            symbol_t* tsym = t->type_base;
+            symbol_t* fields = tsym->sym_tags;
             typeinfo_pt t1;
-            boolean first = TRUE;
+            bool first = TRUE;
             put_string("(");
             for(fields = tsym->sym_tags; fields; fields = fields->sym_parse_list)
             {
@@ -74,7 +64,7 @@ void gen_zero(typeinfo_pt t)
     }
 } /* gen_zero */
 
-static boolean is_string_lit(node_pt e)
+static bool is_string_lit(node_pt e)
 {
     if(e->node_kind == _String)
         return TRUE;
@@ -141,7 +131,7 @@ node_pt gen_initializer(typeinfo_pt t, node_pt e)
             int n;
             int size = t->type_info.array.elements;
             int list_indent;
-            boolean singleton;
+            bool singleton;
 
             /*
              * An array of character type may be initialized by a
@@ -201,8 +191,8 @@ node_pt gen_initializer(typeinfo_pt t, node_pt e)
         case struct_of:
         {
             node_pt enext;
-            symbol_pt fnext; /* next field */
-            boolean first = TRUE;
+            symbol_t* fnext; /* next field */
+            bool first = TRUE;
 
             if(e->node_kind == _Aggregate)
             {
@@ -367,7 +357,7 @@ static node_pt* fix_initializer(typeinfo_pt t, node_pt* ep)
         case struct_of:
         {
             node_pt* ep_next;
-            symbol_pt fnext; /* next field */
+            symbol_t* fnext; /* next field */
 
             if(e->node_kind == _Aggregate)
             {
@@ -403,7 +393,7 @@ static node_pt* fix_initializer(typeinfo_pt t, node_pt* ep)
     } /* switch */
 }
 
-void fix_sym_initializer(symbol_pt sym)
+void fix_sym_initializer(symbol_t* sym)
 {
     typeinfo_pt type = sym->sym_type;
 

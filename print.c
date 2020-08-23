@@ -1,8 +1,5 @@
 #include <stdio.h>
-
-#include "gen_stmt.h"
-#include "gen_expr.h"
-#include "print.h"
+#include "c2ada.h"
 
 #define NEXT 2 /* next indentation level */
 #define MAXPRINT 1000
@@ -44,7 +41,7 @@ int addr, indent;
 
 static void print_stmt_t(stmt_pt s, int indent);
 static void print_node_t(node_pt n, int indent);
-static void print_symbol_t(symbol_pt s, int indent);
+static void print_symbol_t(symbol_t* s, int indent);
 static void print_typeinfo_t(typeinfo_t* t, int indent);
 
 static void print_unknown(s, val) char* s;
@@ -235,7 +232,7 @@ char* nameof_node_kind(node_kind_t n)
         case _Exp:
             return "_Exp";
         case _Sizeof:
-            return "_Sizeof";
+            return "type_sizeof";
         case _Pre_Inc:
             return "_Pre_Inc";
         case _Pre_Dec:
@@ -603,21 +600,21 @@ static void print_typeinfo_t(typeinfo_t* t, int indent)
     printf("type_kind:");
     print_typekind(t->type_kind);
     printf("\n");
-    print_uns_pair("_unsigned", t->_unsigned, indent);
-    print_uns_pair("_signed", t->_signed, indent);
-    print_uns_pair("_short", t->_short, indent);
-    print_uns_pair("_long\t", t->_long, indent);
-    print_uns_pair("_long_long", t->_long_long, indent);
-    print_uns_pair("_volatile", t->_volatile, indent);
-    print_uns_pair("_constant", t->_constant, indent);
-    print_uns_pair("_extern", t->_extern, indent);
-    print_uns_pair("_static", t->_static, indent);
-    print_uns_pair("_auto\t", t->_auto, indent);
-    print_uns_pair("_register", t->_register, indent);
-    print_uns_pair("_typedef", t->_typedef, indent);
-    print_uns_pair("_builtin", t->_builtin, indent);
-    print_uns_pair("_anonymous", t->_anonymous, indent);
-    print_uns_pair("_anon_int", t->_anon_int, indent);
+    print_uns_pair("is_unsigned", t->is_unsigned, indent);
+    print_uns_pair("is_signed", t->is_signed, indent);
+    print_uns_pair("is_short", t->is_short, indent);
+    print_uns_pair("is_long\t", t->is_long, indent);
+    print_uns_pair("is_long_long", t->is_long_long, indent);
+    print_uns_pair("is_volatile", t->is_volatile, indent);
+    print_uns_pair("is_constant", t->is_constant, indent);
+    print_uns_pair("is_extern", t->is_extern, indent);
+    print_uns_pair("is_static", t->is_static, indent);
+    print_uns_pair("is_auto\t", t->is_auto, indent);
+    print_uns_pair("is_register", t->is_register, indent);
+    print_uns_pair("is_typedef", t->is_typedef, indent);
+    print_uns_pair("is_builtin", t->is_builtin, indent);
+    print_uns_pair("is_anonymous", t->is_anonymous, indent);
+    print_uns_pair("is_anon_int", t->is_anon_int, indent);
     switch(t->type_kind)
     {
         case array_of:
@@ -633,8 +630,8 @@ static void print_typeinfo_t(typeinfo_t* t, int indent)
         default:
             break;
     }
-    print_uns_pair("_sizeof", t->_sizeof, indent);
-    print_uns_pair("_alignof", t->_alignof, indent);
+    print_uns_pair("type_sizeof", t->type_sizeof, indent);
+    print_uns_pair("type_alignof", t->type_alignof, indent);
     /* print_uns_pair("type_hash", t->type_hash, indent);  boring */
     spaces(indent);
     printf("type_base:\n");
@@ -647,7 +644,7 @@ static void print_typeinfo_t(typeinfo_t* t, int indent)
     print_typeinfo_t(t->type_next, indent + NEXT);
 }
 
-static void print_symbol_t(symbol_pt s, int indent)
+static void print_symbol_t(symbol_t* s, int indent)
 {
     if(s == NULL)
     {
@@ -664,10 +661,10 @@ static void print_symbol_t(symbol_pt s, int indent)
     indent += NEXT;
     print_uns_pair("sym_scope", s->sym_scope, indent);
     print_uns_pair("intrinsic", s->intrinsic, indent);
-    print_uns_pair("_volatile", s->_volatile, indent);
-    print_uns_pair("_const", s->_const, indent);
-    print_uns_pair("_created_name", s->_created_name, indent);
-    print_uns_pair("_created_by_reference", s->_created_by_reference, indent);
+    print_uns_pair("is_volatile", s->is_volatile, indent);
+    print_uns_pair("is_const", s->is_const, indent);
+    print_uns_pair("is_created_name", s->is_created_name, indent);
+    print_uns_pair("is_created_by_reference", s->is_created_by_reference, indent);
     print_uns_pair("has_initializer", s->has_initializer, indent);
     print_uns_pair("gened", s->gened, indent);
     print_uns_pair("cleared", s->cleared, indent);
@@ -742,7 +739,7 @@ void print_node(node_pt n, int indent)
     print_node_t(n, indent);
 }
 
-void print_symbol(symbol_pt s, int indent)
+void print_symbol(symbol_t* s, int indent)
 {
     nprinted = 0;
     print_symbol_t(s, indent);

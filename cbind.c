@@ -1,14 +1,13 @@
 /*
  * cc like driver for the C to Ada bindings generator
  */
-#include "lowlevel.h"
-#include "errors.h"
 #include <stdio.h>
 #include <sys/types.h>
 #include <string.h>
 #include <unistd.h>
 #include <malloc.h>
-#include "units.h"
+#include "c2ada.h"
+
 
 #undef NULL
 #define NULL 0

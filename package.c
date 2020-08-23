@@ -2,25 +2,14 @@
 /* $Revision: 1.2 $  $Date: 1999/02/03 19:45:04 $ */
 
 #include <assert.h>
-
-#include "il.h"
-#include "types.h"
-#include "anonymous.h"
-#include "allocate.h"
-#include "stab.h"
-#include "ada_name.h"
-#include "package.h"
-#include "format.h"
-#include "errors.h"
-#include "gen.h"
-#include "units.h"
+#include "c2ada.h"
 
 /* Generic package types & routines */
 
 #if 0
 /* For when we want to get really "class'ic" */
 typedef struct {
-    void   (*gen_pkg_def_func)(pkg_def_pt, symbol_pt sym, int indent);
+    void   (*gen_pkg_def_func)(pkg_def_pt, symbol_t* sym, int indent);
 } pkg_class_t, *pkg_class_pt;
 
 
@@ -40,7 +29,7 @@ typedef struct pkg_def_t
     pkg_kind_t kind;
     pkg_def_pt next;
     int unit;
-    symbol_pt sym;
+    symbol_t* sym;
 } pkg_def_t;
 
 struct
@@ -67,7 +56,7 @@ void remember(pkg_def_pt pkg)
  * (We'll synthesize the 0 type).
  */
 
-char* generic_ptrs_pkg_name(boolean const_ptr)
+char* generic_ptrs_pkg_name(bool const_ptr)
 {
     static char* all_name; /* for "access all T" pointers */
     static char* const_name; /* for "access const T" pointers */
@@ -100,7 +89,8 @@ typeinfo_pt new_ptrs_type(typeinfo_pt element, typeinfo_pt pointer, ctxt_pt ctxt
 {
     int unit = current_unit();
     ptrs_pkg_def_pt p = new_ptrs_pkg_def();
-    symbol_pt pkg_sym, sym;
+    symbol_t* pkg_sym;
+    symbol_t* sym;
     char* pkg_name0 = new_strf("%s_pointers", tail(element->type_base->sym_ada_name));
 
     p->element = element;
@@ -119,7 +109,7 @@ typeinfo_pt new_ptrs_type(typeinfo_pt element, typeinfo_pt pointer, ctxt_pt ctxt
     p->pkg.unit = unit;
     remember(&p->pkg);
 
-    if(pointer->type_next->_constant)
+    if(pointer->type_next->is_constant)
     {
         with_c_const_pointers(unit);
     }
@@ -155,11 +145,11 @@ typeinfo_pt ptrs_type_for(typeinfo_pt pointer, ctxt_pt ctxt, file_pos_t pos)
     return new_ptrs_type(element, pointer, ctxt, pos);
 }
 
-void gen_ptrs_pkg_def(ptrs_pkg_def_pt pkg, symbol_pt sym, int indent)
+void gen_ptrs_pkg_def(ptrs_pkg_def_pt pkg, symbol_t* sym, int indent)
 {
     char* element_type_name = new_string(type_nameof(pkg->element, FALSE, FALSE));
     char* pointer_type_name = type_nameof(pkg->pointer, FALSE, FALSE);
-    boolean is_const_ptr = pkg->pointer->type_next->_constant;
+    bool is_const_ptr = pkg->pointer->type_next->is_constant;
 
     putf("%>package %s is\n", indent, sym->sym_ada_name);
     putf("%>new %s(\n", indent + 4, generic_ptrs_pkg_name(is_const_ptr));
@@ -173,7 +163,7 @@ void gen_ptrs_pkg_def(ptrs_pkg_def_pt pkg, symbol_pt sym, int indent)
     putf("\n");
 }
 
-void gen_pkg_def(symbol_pt sym, int indent)
+void gen_pkg_def(symbol_t* sym, int indent)
 {
     pkg_def_pt pkg_def;
     assert(sym->sym_kind == pkg_symbol);

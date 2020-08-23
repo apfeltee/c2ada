@@ -1,19 +1,6 @@
-#include <assert.h>
-#include <limits.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <stdio.h>
-#include <ctype.h>
 
-#include "errors.h"
-#include "ada_name.h"
-#include "files.h"
-#include "units.h"
-#include "allocate.h"
-#include "vendor.h"
-#include "cpp.h"
-#include "configure.h"
+#include "c2ada.h"
+#include "hostinfo.h"
 
 extern int auto_package;
 extern int ada_version;
@@ -102,7 +89,7 @@ unit_n current_unit(void)
     return cur_unit;
 }
 
-boolean is_current_unit(unit_n unit)
+bool is_current_unit(unit_n unit)
 {
     return (cur_unit == unit);
 }
@@ -133,7 +120,7 @@ static void clear_reference(unit_ref_t ref, unit_n ord)
     ref[index] &= ~bit;
 }
 
-static boolean valid_unit(unit_n unit)
+static bool valid_unit(unit_n unit)
 {
     return unit >= 0 && unit < MAX_UNIQ_FNAMES && table[unit] != NULL;
 }
@@ -144,7 +131,7 @@ void set_ellipsis(unit_n unit)
     table[unit]->unit_has_ellipsis = TRUE;
 }
 
-boolean has_ellipsis(unit_n unit)
+bool has_ellipsis(unit_n unit)
 {
     assert(valid_unit(unit));
     return table[unit]->unit_has_ellipsis;
@@ -156,26 +143,26 @@ void set_unit_has_private_part(unit_n unit)
     table[unit]->unit_has_private_part = TRUE;
 }
 
-boolean unit_has_private_part(unit_n unit)
+bool unit_has_private_part(unit_n unit)
 {
     assert(valid_unit(unit));
     return table[unit]->unit_has_private_part;
 }
 
-void set_unchecked_conversion(unit_n unit, boolean in_spec)
+void set_unchecked_conversion(unit_n unit, bool in_spec)
 {
     assert(valid_unit(unit));
     table[unit]->unit_has_unchecked_conversion = TRUE;
     table[unit]->unchecked_conversions_in_spec = in_spec;
 }
 
-boolean has_unchecked_conversion(unit_n unit)
+bool has_unchecked_conversion(unit_n unit)
 {
     assert(valid_unit(unit));
     return table[unit]->unit_has_unchecked_conversion;
 }
 
-boolean unchecked_conversions_to_spec(unit_n unit)
+bool unchecked_conversions_to_spec(unit_n unit)
 {
     assert(valid_unit(unit));
     return table[unit]->unchecked_conversions_in_spec
@@ -195,19 +182,19 @@ void with_c_const_pointers(unit_n unit)
     table[unit]->unit_with_c_const_pointers = TRUE;
 }
 
-boolean has_c_pointers(unit_n unit)
+bool has_c_pointers(unit_n unit)
 {
     assert(valid_unit(unit));
     return table[unit]->unit_with_c_pointers;
 }
 
-boolean has_c_const_pointers(unit_n unit)
+bool has_c_const_pointers(unit_n unit)
 {
     assert(valid_unit(unit));
     return table[unit]->unit_with_c_const_pointers;
 }
 
-static boolean is_referenced(unit_ref_t ref, unit_n ord)
+static bool is_referenced(unit_ref_t ref, unit_n ord)
 /* Is ord in the set ref? */
 {
     int index;
@@ -425,7 +412,7 @@ char* iname;
 
 static void initialize_unit(unit_n ord, file_id_t file)
 {
-    static boolean first_time = TRUE;
+    static bool first_time = TRUE;
     static unit_map* umap = NULL;
 
     char buf[PATH_MAX];
@@ -604,7 +591,7 @@ static char* bindings_dir()
     return result;
 }
 
-boolean set_unit(unit_n ord)
+bool set_unit(unit_n ord)
 /* returns TRUE only if output file can't be opened */
 {
     unit_t* unit;
@@ -656,7 +643,7 @@ void unit_completed()
     }
 }
 
-void unit_dependency(unit_n ord, unit_n dep, boolean from_body)
+void unit_dependency(unit_n ord, unit_n dep, bool from_body)
 /* unit <ord> depends on unit <dep> */
 {
     unit_t* ord_unit;
@@ -731,7 +718,7 @@ char* cur_unit_path()
     return unit->unit_path;
 }
 
-static boolean program_has_const_string = FALSE;
+static bool program_has_const_string = FALSE;
 
 void set_cur_unit_has_const_string(void)
 {
@@ -855,21 +842,17 @@ int nth_body_ref_unit_ord(int n)
 
 void output_to_spec(void)
 {
-    extern void format_to_spec();
-
     cur_unit_fd = cur_spec_fd;
     format_to_spec();
 }
 
 void output_to_body()
 {
-    extern void format_to_body();
-
     cur_unit_fd = cur_body_fd;
     format_to_body();
 }
 
-void output_to(boolean to_spec)
+void output_to(bool to_spec)
 {
     if(to_spec)
     {
@@ -881,7 +864,7 @@ void output_to(boolean to_spec)
     }
 }
 
-boolean output_is_spec()
+bool output_is_spec()
 {
     return (cur_unit_fd == cur_spec_fd);
 };
@@ -893,7 +876,7 @@ comment_block_pt cur_unit_header_comment(void)
     return table[cur_unit]->header_comment;
 }
 
-boolean cur_unit_header_comment_set(void)
+bool cur_unit_header_comment_set(void)
 {
     return table[cur_unit]->header_comment_set;
 }
@@ -977,7 +960,7 @@ unit_n pos_unit(file_pos_t pos)
     return result;
 }
 
-boolean pos_in_current_unit(file_pos_t pos)
+bool pos_in_current_unit(file_pos_t pos)
 {
     return pos_unit(pos) == current_unit();
 }

@@ -31,10 +31,10 @@
    version 2.2 of Bison.  */
 
 #ifndef YY_YY_Y_TAB_H_INCLUDED
-#define YY_YY_Y_TAB_H_INCLUDED
+# define YY_YY_Y_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
-    #define YYDEBUG 0
+# define YYDEBUG 0
 #endif
 #if YYDEBUG
 extern int yydebug;
@@ -42,9 +42,9 @@ extern int yydebug;
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
-    #define YYTOKENTYPE
-enum yytokentype
-{
+# define YYTOKENTYPE
+  enum yytokentype
+  {
     BAD_TOKEN = 258,
     MARKER = 259,
     INTEGER_CONSTANT = 260,
@@ -110,7 +110,7 @@ enum yytokentype
     RETURN = 320,
     THEN = 321,
     ELSE = 322
-};
+  };
 #endif
 /* Tokens.  */
 #define BAD_TOKEN 258
@@ -180,30 +180,31 @@ enum yytokentype
 #define ELSE 322
 
 /* Value type.  */
-#if !defined YYSTYPE && !defined YYSTYPE_IS_DECLARED
+#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
 union YYSTYPE
 {
-    #line 28 "grammar.y" /* yacc.c:1909  */
+#line 20 "grammar.y" /* yacc.c:1909  */
 
-    int val;
-    node_t* nod;
-    symbol_t* sym;
-    typeinfo_t* typ;
-    stmt_t* stmt;
-    file_pos_t pos;
+    int 	val;
+    node_t *	nod;
+    symbol_t *	sym;
+    typeinfo_t *typ;
+    stmt_t * 	stmt;
+    file_pos_t  pos;
     comment_block_pt com;
 
-    #line 198 "y.tab.h" /* yacc.c:1909  */
+#line 198 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
-    #define YYSTYPE_IS_TRIVIAL 1
-    #define YYSTYPE_IS_DECLARED 1
+# define YYSTYPE_IS_TRIVIAL 1
+# define YYSTYPE_IS_DECLARED 1
 #endif
+
 
 extern YYSTYPE yylval;
 
-int yyparse(void);
+int yyparse (void);
 
 #endif /* !YY_YY_Y_TAB_H_INCLUDED  */

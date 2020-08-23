@@ -7,15 +7,7 @@
 */
 #include <sys/types.h>
 
-#include "host.h"
-#include "hash.h"
-#include "files.h"
-#include "il.h"
-#include "nodeop.h"
-#include "types.h"
-#include "stmt.h"
-#include "stab.h"
-#include "comment.h"
+#include "c2ada.h"
 
 /* from scan.c */
 extern file_pos_t yypos;  /* in scan.c */
@@ -587,10 +579,10 @@ begin_compound
 
 compound_statement
     : begin_compound .pos NS_scope_pop '}' {
-        $$ = new_stmt_Compound( $2, (symbol_pt)0, (stmt_pt)0 );
+        $$ = new_stmt_Compound( $2, (symbol_t*)0, (stmt_pt)0 );
     }
     | begin_compound .pos statement_list NS_scope_pop '}' {
-        $$ = new_stmt_Compound( $2, (symbol_pt)0, $3 );
+        $$ = new_stmt_Compound( $2, (symbol_t*)0, $3 );
     }
     | begin_compound .pos nested_declaration_list NS_scope_pop '}' {
         $$ = new_stmt_Compound( $2, $3, (stmt_pt)0 );

@@ -7,21 +7,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "c2ada.h"
 
-#include "errors.h"
-#include "host.h"
-#include "files.h"
-#include "hash.h"
-#include "il.h"
-#include "nodeop.h"
-#include "allocate.h"
-#include "types.h"
-#include "stab.h"
-#include "ada_name.h"
-#include "anonymous.h"
-#include "gen.h"
-#include "units.h"
-#include "ada_types.h"
 
 extern int auto_package;
 extern file_pos_t yypos;
@@ -89,8 +76,8 @@ typeinfo_pt find_anonymous_type(typeinfo_pt typ)
     {
         if(same_ada_type(t, typ))
         {
-            symbol_pt tsym = t->type_base;
-            symbol_pt rsym;
+            symbol_t* tsym = t->type_base;
+            symbol_t* rsym;
 
             assert(tsym);
             if(t->type_kind != pointer_to)
@@ -123,9 +110,9 @@ void store_anonymous_type(typ) typeinfo_t* typ;
     anonymous_types[index] = typ;
 }
 
-static void define_anon_type(typeinfo_pt type, char* id, char* ada_name, boolean gened)
+static void define_anon_type(typeinfo_pt type, char* id, char* ada_name, bool gened)
 {
-    symbol_pt basetype;
+    symbol_t* basetype;
 
     basetype = new_sym();
     basetype->intrinsic = TRUE;
@@ -135,7 +122,7 @@ static void define_anon_type(typeinfo_pt type, char* id, char* ada_name, boolean
     basetype->sym_ada_name = ada_name;
     basetype->gened = gened;
 
-    type->_anonymous = TRUE;
+    type->is_anonymous = TRUE;
     type->type_base = basetype;
     store_anonymous_type(type);
 }
@@ -154,7 +141,7 @@ static typeinfo_pt add_const_pointer_type(typeinfo_pt typ)
  */
 void init_anonymous_types(void)
 {
-    static boolean initialized = FALSE;
+    static bool initialized = FALSE;
     typeinfo_t* typ;
 
     if(initialized)
@@ -195,11 +182,11 @@ void init_anonymous_types(void)
 symbol_t* get_anonymous_type(typeinfo_pt typ)
 {
     typeinfo_pt anonymous_type;
-    symbol_pt basetype;
+    symbol_t* basetype;
     ident_case_t icase;
     char buf[512];
-    boolean type_is_func_ptr = is_function_pointer(typ);
-    boolean private = FALSE;
+    bool type_is_func_ptr = is_function_pointer(typ);
+    bool private = FALSE;
 
     assert(typ != NULL);
 
@@ -235,7 +222,7 @@ symbol_t* get_anonymous_type(typeinfo_pt typ)
 	    return basetype;
 	} else {
 	    /* type->type_kind == pointer_to */
-	    symbol_pt rsym = typ->type_next->type_base;
+	    symbol_t* rsym = typ->type_next->type_base;
 	    if (rsym && FILE_ORD(rsym->sym_def)==FILE_ORD(basetype->sym_def)) {
 		return typ->type_base = basetype;
 	    }
@@ -250,7 +237,7 @@ symbol_t* get_anonymous_type(typeinfo_pt typ)
     else if(typ->type_kind == pointer_to)
     {
         typeinfo_pt rtyp;
-        symbol_pt rsym;
+        symbol_t* rsym;
 
         rtyp = typ->type_next;
         assert(rtyp != NULL);
@@ -282,7 +269,7 @@ symbol_t* get_anonymous_type(typeinfo_pt typ)
             strcpy(buf, tail(type_nameof(rtyp, FALSE, FALSE)));
         }
 
-        strcat(buf, rtyp->_constant ? "_const_access" : "_access");
+        strcat(buf, rtyp->is_constant ? "_const_access" : "_access");
 
         icase = id_case(rsym->sym_ada_name);
         /* if (! ends_in_t(rsym->sym_ada_name)) { */
@@ -326,7 +313,7 @@ symbol_t* get_anonymous_type(typeinfo_pt typ)
     typ->type_base = basetype;
 
     typ = copy_type(typ);
-    typ->_anonymous = 1;
+    typ->is_anonymous = 1;
 
     store_anonymous_type(typ);
 

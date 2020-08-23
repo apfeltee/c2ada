@@ -2,8 +2,8 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include "c2ada.h"
 
-#include "errors.h"
 
 int Num_Errors;
 int Num_Warnings;

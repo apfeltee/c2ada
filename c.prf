@@ -6,12 +6,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "host.h"
-#include "files.h"
-#include "hash.h"
-#include "il.h"
-#include "stmt.h"
+#include "c2ada.h"
 #include "y.tab.h"
 %}
 struct resword {char *name; short token;};

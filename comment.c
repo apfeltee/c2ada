@@ -1,8 +1,7 @@
-#include "il.h"
-#include "allocate.h"
-#include "comment.h"
-#include "format.h"
+
 #include <string.h>
+#include "c2ada.h"
+
 
 comment_block_pt new_comment_block()
 {

@@ -8,9 +8,8 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <stdio.h>
+#include "c2ada.h"
 
-#include "errors.h"
-#include "allocate.h"
 
 #undef NULL
 #define NULL 0

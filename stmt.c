@@ -7,24 +7,14 @@
  */
 
 #include <assert.h>
-
-#include "errors.h"
-#include "stmt.h"
-#include "gen_stmt.h"
-#include "fix_stmt.h"
-#include "allocate.h"
-#include "types.h"
-#include "format.h"
-#include "gen.h"
-#include "stab.h"
-#include "package.h"
+#include "c2ada.h"
 
 /* from scan.c */
 extern file_pos_t yypos;
 extern comment_block_pt fetch_comment_block(void);
 
 /**************** allocation of stmt structs *************************/
-stmt_t* new_stmt(stmt_kind_t stmt_kind, file_pos_t pos, boolean default_com, comment_block_pt com)
+stmt_t* new_stmt(stmt_kind_t stmt_kind, file_pos_t pos, bool default_com, comment_block_pt com)
 {
     static stmt_t* free = NULL;
     static int free_index;
@@ -92,7 +82,7 @@ stmt_pt new_stmt_Expr(node_pt expr)
     return stmt;
 }
 
-stmt_pt new_stmt_Compound(file_pos_t pos, symbol_pt decls, stmt_pt s)
+stmt_pt new_stmt_Compound(file_pos_t pos, symbol_t* decls, stmt_pt s)
 {
     stmt_pt stmt = new_stmt(_Compound, pos, TRUE, 0);
     stmt->stmt.compound.decls = decls;
@@ -242,7 +232,7 @@ void set_stmts_scope(stmt_pt stmt, scope_id_t scope)
 
 /*********************  function definition *****************************/
 
-symbol_pt new_func(symbol_pt decl, stmt_pt body)
+symbol_t* new_func(symbol_t* decl, stmt_pt body)
 {
     decl->has_initializer = 1;
     decl->sym_value.body = body;
@@ -251,7 +241,7 @@ symbol_pt new_func(symbol_pt decl, stmt_pt body)
     return decl;
 }
 
-void define_func(symbol_pt funcdef, comment_block_pt comment)
+void define_func(symbol_t* funcdef, comment_block_pt comment)
 {
     assert(funcdef->sym_kind == func_symbol);
     assert(funcdef->has_initializer);
@@ -263,11 +253,11 @@ void define_func(symbol_pt funcdef, comment_block_pt comment)
 
 /* gen_funcdef: print a function definition. */
 
-void gen_funcdef(symbol_pt funcdef, int indent)
+void gen_funcdef(symbol_t* funcdef, int indent)
 {
     /* s is the compound statement which is the function def */
     stmt_pt s = funcdef->sym_value.body;
-    symbol_pt sym;
+    symbol_t* sym;
     int scope_id;
 
     if(s->stmt.compound.decls)
@@ -277,7 +267,7 @@ void gen_funcdef(symbol_pt funcdef, int indent)
             sym = sym->sym_parse_list)
         {
             if(sym->sym_kind == var_symbol && sym->sym_scope_id == scope_id
-               && !sym->_static)
+               && !sym->is_static)
             {
                 gen_var_or_field(sym, indent + 4, 20, -1, NULL, 0);
             }

@@ -3,18 +3,7 @@
 
 #include <assert.h>
 #include <stdio.h>
-
-#include "errors.h"
-#include "gen_expr.h"
-#include "format.h"
-#include "gen.h"
-#include "anonymous.h"
-#include "macro.h"
-#include "stmt.h"
-#include "print.h"
-#include "nodeop.h"
-#include "types.h"
-#include "units.h"
+#include "c2ada.h"
 
 #define streq(a, b) (!strcmp(a, b))
 
@@ -36,12 +25,12 @@ extern char* packaged_name(char*, file_pos_t, file_pos_t);
  * calls gen_expr_func to find the right function, and invokes it.
  */
 
-typedef void (*gen_expr_func_t)(node_pt e, boolean in_parens);
+typedef void (*gen_expr_func_t)(node_pt e, bool in_parens);
 static gen_expr_func_t gen_expr_func(node_pt e);
 
-static boolean dynamic_referent(node_pt e);
+static bool dynamic_referent(node_pt e);
 
-void gen_expr(node_pt e, boolean in_parens)
+void gen_expr(node_pt e, bool in_parens)
 {
     (*gen_expr_func(e))(e, in_parens);
 }
@@ -186,13 +175,13 @@ static char* expr_op_string(node_pt e)
     }
 }
 
-static void lparen(boolean in_parens)
+static void lparen(bool in_parens)
 {
     if(in_parens)
         put_char('(');
 }
 
-static void rparen(boolean in_parens)
+static void rparen(bool in_parens)
 {
     if(in_parens)
         put_char(')');
@@ -246,7 +235,7 @@ ada_prec_t ada_prec(node_kind_t op)
     }
 }
 
-boolean paren_sub(boolean right, node_pt x, node_pt xsub)
+bool paren_sub(bool right, node_pt x, node_pt xsub)
 {
     /*
      * Parenthesize a binary subexpression if
@@ -278,10 +267,10 @@ boolean paren_sub(boolean right, node_pt x, node_pt xsub)
 }
 
 /* gen_expr_Binop: gen routine for infix binary operator expressions */
-void gen_expr_Binop(node_pt e, boolean in_parens)
+void gen_expr_Binop(node_pt e, bool in_parens)
 {
-    boolean bracket_left = paren_sub(0, e, e->node.binary.l);
-    boolean bracket_right = paren_sub(1, e, e->node.binary.r);
+    bool bracket_left = paren_sub(0, e, e->node.binary.l);
+    bool bracket_right = paren_sub(1, e, e->node.binary.r);
 
     lparen(in_parens);
     gen_expr(e->node.binary.l, bracket_left);
@@ -292,7 +281,7 @@ void gen_expr_Binop(node_pt e, boolean in_parens)
     rparen(in_parens);
 }
 
-void gen_expr_Binop_Assign(node_pt e, boolean in_parens)
+void gen_expr_Binop_Assign(node_pt e, bool in_parens)
 /* for binary assignment expressions */
 {
     node_pt el = e->node.binary.l;
@@ -304,7 +293,7 @@ void gen_expr_Binop_Assign(node_pt e, boolean in_parens)
     gen_expr(er, FALSE);
 }
 
-void gen_expr_Binop_func(node_pt e, boolean in_parens)
+void gen_expr_Binop_func(node_pt e, bool in_parens)
 {
     put_string(expr_op_string(e)); /* print name of function */
     put_string("( ");
@@ -314,9 +303,9 @@ void gen_expr_Binop_func(node_pt e, boolean in_parens)
     put_string(" )");
 }
 
-void gen_expr_Unop(node_pt e, boolean in_parens)
+void gen_expr_Unop(node_pt e, bool in_parens)
 {
-    boolean bracket_sub = ada_prec(e->node.unary->node_kind) < ap_highest;
+    bool bracket_sub = ada_prec(e->node.unary->node_kind) < ap_highest;
 
     lparen(in_parens);
     put_string(expr_op_string(e));
@@ -324,9 +313,9 @@ void gen_expr_Unop(node_pt e, boolean in_parens)
     rparen(in_parens);
 }
 
-void gen_expr_Unop_postfix(node_pt e, boolean in_parens)
+void gen_expr_Unop_postfix(node_pt e, bool in_parens)
 {
-    boolean bracket_sub = ada_prec(e->node.unary->node_kind) < ap_highest;
+    bool bracket_sub = ada_prec(e->node.unary->node_kind) < ap_highest;
 
     lparen(in_parens);
     gen_expr(e->node.unary, bracket_sub);
@@ -334,7 +323,7 @@ void gen_expr_Unop_postfix(node_pt e, boolean in_parens)
     rparen(in_parens);
 }
 
-void gen_expr_Unop_func(node_pt e, boolean in_parens)
+void gen_expr_Unop_func(node_pt e, bool in_parens)
 {
     put_string(expr_op_string(e)); /* print name of function */
     put_string("( ");
@@ -342,7 +331,7 @@ void gen_expr_Unop_func(node_pt e, boolean in_parens)
     put_string(" )");
 }
 
-void gen_expr_Sizeof(node_pt e, boolean in_parens)
+void gen_expr_Sizeof(node_pt e, bool in_parens)
 {
     static char* sizeof_funcname;
 
@@ -360,7 +349,7 @@ void gen_expr_Sizeof(node_pt e, boolean in_parens)
     rparen(in_parens);
 }
 
-void gen_expr_Type(node_pt e, boolean in_parens)
+void gen_expr_Type(node_pt e, bool in_parens)
 {
     char* name;
     name = type_nameof(e->node.typ, 0, 0);
@@ -370,12 +359,12 @@ void gen_expr_Type(node_pt e, boolean in_parens)
     rparen(in_parens);
 }
 
-void gen_expr_Sym(node_pt e, boolean in_parens)
+void gen_expr_Sym(node_pt e, bool in_parens)
 {
     /* Qualify the symbol's name with its package name if it's not
      * in the current package.
      */
-    symbol_pt sym = e->node.sym;
+    symbol_t* sym = e->node.sym;
     char* qname = sym->sym_ada_name;
     extern int yypos;
     file_pos_t sym_pos = e->node.sym->sym_def;
@@ -385,7 +374,7 @@ void gen_expr_Sym(node_pt e, boolean in_parens)
      * in the "fixup" phase.
      */
 
-    if(!(sym->intrinsic || sym->_struct_or_union_member || sym_pos == yypos))
+    if(!(sym->intrinsic || sym->is_struct_or_union_member || sym_pos == yypos))
     {
         qname = packaged_name(e->node.sym->sym_ada_name, e->node_def, sym_pos);
     }
@@ -394,7 +383,7 @@ void gen_expr_Sym(node_pt e, boolean in_parens)
     rparen(in_parens);
 }
 
-void gen_expr_Ident(node_pt e, boolean in_parens)
+void gen_expr_Ident(node_pt e, bool in_parens)
 {
     /* Identifiers should be resolved to symbols by now */
     /* TBD: set an error indicator? issue message? */
@@ -405,7 +394,7 @@ void gen_expr_Ident(node_pt e, boolean in_parens)
 
 char* null_pointer_value_name(typeinfo_pt type)
 {
-    symbol_pt tsym = type->type_base;
+    symbol_t* tsym = type->type_base;
 
     assert(type->type_kind == pointer_to);
     if(type->type_next->type_kind == void_type)
@@ -414,7 +403,7 @@ char* null_pointer_value_name(typeinfo_pt type)
     }
     else if(tsym && tsym->private)
     {
-        symbol_pt sym = private_type_null(tsym);
+        symbol_t* sym = private_type_null(tsym);
 
         if(pos_in_current_unit(sym->sym_def))
         {
@@ -433,7 +422,7 @@ char* null_pointer_value_name(typeinfo_pt type)
     }
 }
 
-void gen_expr_Macro_ID(node_pt e, boolean in_parens)
+void gen_expr_Macro_ID(node_pt e, bool in_parens)
 {
     char* name = e->node.macro->macro_ada_name;
     if(is_null_ptr_value(e))
@@ -463,14 +452,14 @@ void gen_expr_Macro_ID(node_pt e, boolean in_parens)
     rparen(in_parens);
 }
 
-void gen_expr_FP_Number(node_pt e, boolean in_parens)
+void gen_expr_FP_Number(node_pt e, bool in_parens)
 {
     lparen(in_parens);
     print_fp_value(e->node.fval);
     rparen(in_parens);
 }
 
-void gen_expr_Int_Number(node_pt e, boolean in_parens)
+void gen_expr_Int_Number(node_pt e, bool in_parens)
 {
     lparen(in_parens);
     if(e->type == type_boolean())
@@ -492,7 +481,7 @@ void gen_expr_Int_Number(node_pt e, boolean in_parens)
     rparen(in_parens);
 }
 
-void gen_expr_String(node_pt e, boolean in_parens)
+void gen_expr_String(node_pt e, bool in_parens)
 {
     lparen(in_parens);
     if(e->node.str.len)
@@ -506,7 +495,7 @@ void gen_expr_String(node_pt e, boolean in_parens)
     rparen(in_parens);
 }
 
-void gen_expr_List(node_pt e, boolean in_parens)
+void gen_expr_List(node_pt e, bool in_parens)
 {
     /* TBD: assuming that _List nodes used only for arg lists;
      * i.e., that comma expressions don't make it this far.
@@ -516,7 +505,7 @@ void gen_expr_List(node_pt e, boolean in_parens)
     gen_expr(e->node.binary.r, 0);
 }
 
-void gen_expr_Selected(node_pt e, boolean in_parens)
+void gen_expr_Selected(node_pt e, bool in_parens)
 {
     lparen(in_parens);
     gen_expr(e->node.binary.l, 0 /*tbd*/);
@@ -525,7 +514,7 @@ void gen_expr_Selected(node_pt e, boolean in_parens)
     rparen(in_parens);
 }
 
-void gen_expr_Array_Index(node_pt e, boolean in_parens)
+void gen_expr_Array_Index(node_pt e, bool in_parens)
 {
     lparen(in_parens);
     gen_expr(e->node.binary.l, 0 /*tbd*/);
@@ -535,7 +524,7 @@ void gen_expr_Array_Index(node_pt e, boolean in_parens)
     rparen(in_parens);
 }
 
-void gen_expr_Func_Call(node_pt e, boolean in_parens)
+void gen_expr_Func_Call(node_pt e, bool in_parens)
 {
     lparen(in_parens);
     gen_expr(e->node.binary.l, 0 /* tbd */);
@@ -548,7 +537,7 @@ void gen_expr_Func_Call(node_pt e, boolean in_parens)
     rparen(in_parens);
 }
 
-static void gen_forced_type(typeinfo_pt type, boolean to_unsigned, node_pt e)
+static void gen_forced_type(typeinfo_pt type, bool to_unsigned, node_pt e)
 /* e must be converted to/from unsigned.
  * Then, if the target type is not a builtin type, or
  * not the same size as the default conversion
@@ -557,8 +546,8 @@ static void gen_forced_type(typeinfo_pt type, boolean to_unsigned, node_pt e)
 {
     static char* to_unsigned_name;
     static char* to_signed_name;
-    boolean coerce_after;
-    boolean coerce_before;
+    bool coerce_after;
+    bool coerce_before;
     typeinfo_pt etype = e->type;
     char* btype_name;
 
@@ -568,9 +557,9 @@ static void gen_forced_type(typeinfo_pt type, boolean to_unsigned, node_pt e)
         to_signed_name = "To_signed";
     }
 
-    coerce_after = !type->_builtin || type->_sizeof != etype->_sizeof;
+    coerce_after = !type->is_builtin || type->type_sizeof != etype->type_sizeof;
 
-    coerce_before = etype && !etype->_builtin;
+    coerce_before = etype && !etype->is_builtin;
     if(coerce_before)
     {
         btype_name = int_type_builtin_name(etype);
@@ -593,7 +582,7 @@ static void gen_forced_type(typeinfo_pt type, boolean to_unsigned, node_pt e)
         put_string(")");
 }
 
-static boolean dynamic_referent(node_pt e)
+static bool dynamic_referent(node_pt e)
 /* Returns TRUE unless e is known to be statically allocated */
 {
     switch(e->node_kind)
@@ -613,13 +602,13 @@ static boolean dynamic_referent(node_pt e)
     }
 }
 
-void gen_expr_Type_Cast(node_pt e, boolean in_parens)
+void gen_expr_Type_Cast(node_pt e, bool in_parens)
 {
     node_pt el = e->node.binary.l;
     node_pt er = e->node.binary.r;
     typeinfo_pt type = el->node.typ;
     typeinfo_pt from_type = er->type;
-    boolean is_ptr_cast = type->type_kind == pointer_to;
+    bool is_ptr_cast = type->type_kind == pointer_to;
 
     if(type->type_kind == array_of && er->node_kind == _String)
     {
@@ -657,11 +646,11 @@ void gen_expr_Type_Cast(node_pt e, boolean in_parens)
     else if(type->type_kind == int_type && from_type->type_kind == int_type
             && e->baseval /* special signal for type force */)
     {
-        gen_forced_type(type, type->_unsigned, er);
+        gen_forced_type(type, type->is_unsigned, er);
     }
     else
     {
-        boolean qualified = (is_ptr_cast && er->node_kind == _Addrof);
+        bool qualified = (is_ptr_cast && er->node_kind == _Addrof);
 
         gen_expr(el, 0);
         put_string(qualified ? "'(" : "(");
@@ -671,7 +660,7 @@ void gen_expr_Type_Cast(node_pt e, boolean in_parens)
     rparen(in_parens);
 }
 
-void gen_expr_Assign(node_pt e, boolean in_parens)
+void gen_expr_Assign(node_pt e, bool in_parens)
 {
     gen_expr(e->node.binary.l, 0);
     put_string(" := ");
@@ -688,8 +677,8 @@ static char* bool_to_int_funcname(void)
     return funcname;
 }
 
-void gen_expr_Not(node_pt e, boolean in_parens)
-/* The _Not operator returns a boolean */
+void gen_expr_Not(node_pt e, bool in_parens)
+/* The _Not operator returns a bool */
 {
     static char* eq0_funcname;
     node_pt eSub = e->node.unary;
@@ -723,7 +712,7 @@ void gen_expr_Not(node_pt e, boolean in_parens)
     }
 }
 
-void gen_expr_Unimplemented(node_pt e, boolean in_parens)
+void gen_expr_Unimplemented(node_pt e, bool in_parens)
 {
     put_string("{UNIMPLEMENTED_EXPRESSION_FORM}");
     warning(file_name(e->node_def), line_number(e->node_def),

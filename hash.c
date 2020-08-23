@@ -1,4 +1,5 @@
-#include "hash.h"
+
+#include "c2ada.h"
 
 hash_t common_hash(str) char* str;
 {

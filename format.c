@@ -1,10 +1,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <ctype.h>
-
-#include "boolean.h"
-#include "errors.h"
-#include "format.h"
+#include "c2ada.h"
 
 extern FILE* cur_unit_fd;
 
@@ -19,18 +16,18 @@ static int body_indentation = START_INDENT;
  * This flag is true if we're currently putting a string or char literal.
  * It's used to decide how to handle line breaks.
  */
-static boolean in_text_literal = FALSE;
+static bool in_text_literal = FALSE;
 
 /* This is a stronger form of literal quotation: unlike strings,
  * we'll NEVER want to split in one of these literals (floating
  * point literals are the motivating case.)
  */
-static boolean in_literal = FALSE;
+static bool in_literal = FALSE;
 
 /*
  * This flag is set if we're outputting a comment.
  */
-static boolean in_comment = FALSE;
+static bool in_comment = FALSE;
 
 /*
  * The maximum allowable width of an output line.  GNAT, for one, has
@@ -68,7 +65,7 @@ void reset_output_line()
     spec_line_num = body_line_num = line_num = 1;
 }
 
-static boolean allow_break_after(char c)
+static bool allow_break_after(char c)
 {
     if(isalnum(c))
         return FALSE;

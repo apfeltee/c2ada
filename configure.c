@@ -2,26 +2,18 @@
 /* $Revision: 1.2 $  $Date: 1999/02/03 19:45:03 $ */
 
 #include <stdlib.h>
-
-#include "errors.h"
-#include "allocate.h"
-#include "files.h"
-#include "units.h"
-#include "il.h"
-#include "types.h"
-
 #undef DEBUG
-#include "Python.h"
-#include "pythonrun.h"
-#include "import.h"
+#include <Python.h>
+#include <pythonrun.h>
 
-#include "configure.h"
+#include "c2ada.h"
+
 
 static PyObject* c2ada; /* Python module "C2ada" */
 static PyObject* the_data; /* Python "the" */
 static PyObject* the_sources; /* Python "the.source" */
 
-boolean configured = FALSE; /* set by calling configure_project */
+bool configured = FALSE; /* set by calling configure_project */
 
 void configure_project(char* filename)
 {
@@ -66,11 +58,11 @@ char** configured_reserved_ids(int* count_p)
     return result;
 }
 
-boolean configured_source_flag(char* source, char* attribute, boolean default_result)
+bool configured_source_flag(char* source, char* attribute, bool default_result)
 {
     PyObject* sourceObj = PyMapping_GetItemString(the_sources, source);
     PyObject* attribObj;
-    boolean result = default_result;
+    bool result = default_result;
     if(sourceObj)
     {
         attribObj = PyObject_GetAttrString(sourceObj, attribute);
@@ -123,7 +115,7 @@ static source_pt file_source(file_id_t file)
     return &cached;
 }
 
-boolean configured_sym_info(symbol_pt sym, typeinfo_pt type)
+bool configured_sym_info(symbol_t* sym, typeinfo_pt type)
 /*
  * Called when a symbol has just been created (and the
  * sym_def and sym_ident fields filled; searches the
@@ -147,7 +139,7 @@ boolean configured_sym_info(symbol_pt sym, typeinfo_pt type)
         return FALSE;
     }
 
-    /* return_type_is_void, boolean */
+    /* return_type_is_void, bool */
 
     return_type_is_voidObj = PyObject_GetAttrString(declObj, "return_type_is_void");
     if(!return_type_is_voidObj)
@@ -171,7 +163,7 @@ boolean configured_sym_info(symbol_pt sym, typeinfo_pt type)
         PyErr_Clear();
     }
 
-    /* private : boolean */
+    /* private : bool */
     {
         PyObject* privateObj = PyObject_GetAttrString(declObj, "private");
         if(privateObj)
@@ -184,7 +176,7 @@ boolean configured_sym_info(symbol_pt sym, typeinfo_pt type)
         }
     }
 
-    /* declare_in_spec: boolean */
+    /* declare_in_spec: bool */
     {
         PyObject* dspecObj = PyObject_GetAttrString(declObj, "declare_in_spec");
         if(dspecObj)

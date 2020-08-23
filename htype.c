@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <sys/types.h>
-
 #include <sys/param.h> /* for NBBY */
+#include "c2ada.h"
+#include "hostinfo.h"
+
 
 #define CHAR_SIZE sizeof(char)
 #define SHORT_SIZE sizeof(short int)

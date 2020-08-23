@@ -1,11 +1,8 @@
 /* $Source: /home/CVSROOT/c2ada/order.c,v $ */
 /* $Revision: 1.1.1.1 $  $Date: 1999/02/02 12:01:51 $ */
 
-#include "boolean.h"
-#include "il.h"
-#include "units.h"
-#include "order.h"
-#include "files.h"
+
+#include "c2ada.h"
 
 /* TBD: we're commandeering an unused bit, which should be renamed */
 #define DONE_MARK(sym) ((sym)->emitted)
@@ -14,7 +11,7 @@ static void undone_type_requisites(symbols_t syms, typeinfo_pt type, unit_n unit
 
 static void undone_node_requisites(symbols_t syms, node_pt node, unit_n unit);
 
-boolean sym_done(symbol_pt sym)
+bool sym_done(symbol_t* sym)
 {
     if(DONE_MARK(sym))
         return TRUE;
@@ -31,7 +28,7 @@ boolean sym_done(symbol_pt sym)
     }
 }
 
-static void undone_sym(symbols_t syms, symbol_pt sym, unit_n unit)
+static void undone_sym(symbols_t syms, symbol_t* sym, unit_n unit)
 {
     if(pos_unit(sym->sym_def) != unit)
         return;
@@ -40,7 +37,7 @@ static void undone_sym(symbols_t syms, symbol_pt sym, unit_n unit)
     symset_add(syms, sym);
 }
 
-static void undone_sym_requisites(symbols_t syms, symbol_pt sym, unit_n unit)
+static void undone_sym_requisites(symbols_t syms, symbol_t* sym, unit_n unit)
 {
     switch(sym->sym_kind)
     {
@@ -111,7 +108,7 @@ static void undone_type_requisites(symbols_t syms, typeinfo_pt type, unit_n unit
             /* field type requisites */
             {
                 /* n
-                symbol_pt tag;
+                symbol_t* tag;
                 for (tag=type->typesym->sym_tags; tag; tag=tag->sym_parse_list)
                 { undone_type_requisites( syms, tag->sym_type. unit );
                 }
@@ -138,7 +135,7 @@ static void undone_type_requisites(symbols_t syms, typeinfo_pt type, unit_n unit
 
             /* argument types */
             {
-                symbol_pt arg;
+                symbol_t* arg;
                 for(arg = type->type_info.formals; arg; arg = arg->sym_parse_list)
                 {
                     undone_type_requisites(syms, arg->sym_type, unit);
@@ -274,7 +271,7 @@ void undone_node_requisites(symbols_t syms, node_pt node, unit_n unit)
  * symbols (types)?  After all, no forward refs in C.
  */
 
-symbols_t undone_requisites(symbol_pt sym)
+symbols_t undone_requisites(symbol_t* sym)
 {
     symbols_t syms;
     unit_n unit = pos_unit(sym->sym_def);
@@ -294,21 +291,21 @@ symbols_t undone_requisites(symbol_pt sym)
     return syms;
 }
 
-boolean has_undone_requisites(symbol_pt sym)
+bool has_undone_requisites(symbol_t* sym)
 {
     symbols_t syms = undone_requisites(sym);
-    boolean result = symset_size(syms) > 0;
+    bool result = symset_size(syms) > 0;
 
     /* TBD: free reference to syms */
     return result;
 }
 
-void set_symbol_done(symbol_pt sym)
+void set_symbol_done(symbol_t* sym)
 {
     DONE_MARK(sym) = TRUE;
 }
 
-void postpone_doing(symbol_pt sym)
+void postpone_doing(symbol_t* sym)
 {
     /* TBD: just a placeholder at the moment */
 }

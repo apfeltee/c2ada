@@ -2,23 +2,8 @@
 #include <stdio.h>
 #include <memory.h>
 #include <sys/types.h>
-
-#include "errors.h"
-#include "host.h"
-#include "files.h"
-#include "hash.h"
-#include "buffer.h"
-#include "cpp.h"
-#include "cpp_hide.h"
-#include "allocate.h"
-#include "il.h"
-#include "nodeop.h"
-#include "types.h"
-#include "stab.h"
-#include "stmt.h"
-#include "units.h"
+#include "c2ada.h"
 #include "y.tab.h"
-#include "comment.h"
 
 #undef NULL
 #define NULL 0
@@ -37,15 +22,15 @@
 file_pos_t yypos;
 static int yyc;
 static int skipping_compound_statements;
-static boolean at_line_start = TRUE;
+static bool at_line_start = TRUE;
 static node_t* last_ident;
 
 /* When this flag is TRUE, a typedef-name token will be returned
  * as an IDENTIFIER; otherwise as a TYPEDEF_NAME
  */
-static boolean typedef_name_as_id;
+static bool typedef_name_as_id;
 
-void yield_typedef(boolean flag)
+void yield_typedef(bool flag)
 {
     typedef_name_as_id = !flag;
 }
@@ -107,7 +92,7 @@ host_int_t* val;
     return c;
 }
 
-static int grok_number(boolean fraction)
+static int grok_number(bool fraction)
 /* fraction is TRUE if the character previous to yyc was '.' */
 {
     host_int_t val;
@@ -272,7 +257,7 @@ static int grok_ident(void)
         {
             yylval.typ = copy_type(sym->sym_type);
             yylval.typ->type_base = sym;
-            yylval.typ->_typedef = 0;
+            yylval.typ->is_typedef = 0;
             return TYPEDEF_NAME;
         }
     }

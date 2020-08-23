@@ -9,17 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "c2ada.h"
 
-#include "errors.h"
-#include "files.h"
-#include "hash.h"
-#include "buffer.h"
-#include "cpp.h"
-#include "cpp_hide.h"
-#include "cpp_eval.h"
-#include "allocate.h"
-#include "units.h"
-#include "configure.h"
 
 extern int translate_comments;
 
@@ -49,7 +40,7 @@ struct cpp_file_t
 
 static cpp_file_t* open_files;
 static scan_position_t* curpos;
-boolean current_unit_is_header;
+bool current_unit_is_header;
 
 unsigned char cpp_char_class[128];
 static char class_initialized;
@@ -66,7 +57,7 @@ static char class_initialized;
 #define UNHANDLED() unhandled(__FILE__, __LINE__)
 
 static buffer_t cppbuf;
-static boolean buffer_initialized;
+static bool buffer_initialized;
 
 static char* search_paths[MAX_SEARCH];
 static int search_index;
@@ -77,12 +68,12 @@ static int system_search_index = 1;
 /* at_file_start is set TRUE when a new file is opened,
  * and FALSE once the first token is read from the file.
  */
-boolean at_file_start;
+bool at_file_start;
 
 /* TBD: this is a temporary flag to bypass the handling of
  * macros as constants until the whole facility works better.
  */
-boolean do_const_macros = TRUE;
+bool do_const_macros = TRUE;
 
 /*
  * The following vars control the state of conditionals
@@ -102,7 +93,7 @@ static int last_line;
 #define LN fline()
 
 static int grok_actual_param(int);
-static boolean is_const_macro(macro_t* mac);
+static bool is_const_macro(macro_t* mac);
 
 static char* fname(void)
 /* The name of the current source file. */
@@ -725,7 +716,7 @@ static int skip_white(c) int c;
  * even though the plain C version below this worked just fine.
  */
 
-static int scan_cpp_comment(buffer_t* buf, boolean want_delim)
+static int scan_cpp_comment(buffer_t* buf, bool want_delim)
 {
     int c = next_char();
 
@@ -761,7 +752,7 @@ static int scan_cpp_comment(buffer_t* buf, boolean want_delim)
     }
 }
 
-static int scan_c_comment(buffer_t* buf, boolean want_delim)
+static int scan_c_comment(buffer_t* buf, bool want_delim)
 {
     int c = next_char();
 
@@ -1631,7 +1622,7 @@ static void pathname_head(buffer_t* buf, char* path)
     }
 }
 
-static int search_for_file(buffer_t* buf, buffer_t* lbuf, char* name, boolean stdinc)
+static int search_for_file(buffer_t* buf, buffer_t* lbuf, char* name, bool stdinc)
 /*
  * Attempt to open file with name <name>. If <stdinc> is true,
  * only search the "system" standard directories.
@@ -2288,7 +2279,7 @@ int c;
     return c;
 }
 
-static boolean is_const_macro(macro_t* mac)
+static bool is_const_macro(macro_t* mac)
 /* Test whether macro represents a constant value */
 {
     if(!do_const_macros)

@@ -4,9 +4,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "errors.h"
+
+#include "c2ada.h"
 #include "hostinfo.h"
-#include "files.h"
 
 #ifdef HAS_MMAP
     #include <sys/mman.h>

@@ -22,28 +22,10 @@
 
 #include <assert.h>
 #include <stdlib.h>
-
-#include "hostinfo.h"
-#include "errors.h"
-#include "context.h"
-#include "fix_stmt.h"
-#include "types.h"
-#include "nodeop.h"
-#include "stmt.h"
-#include "macro.h"
-#include "localfunc.h"
-#include "print.h"
-#include "allocate.h"
-#include "stab.h"
-#include "aux_decls.h"
-#include "units.h"
-#include "package.h"
-#include "anonymous.h"
-#include "ada_types.h"
-
-#include "gen.h"
-
 #include <string.h>
+#include "c2ada.h"
+#include "hostinfo.h"
+
 
 /* a string equality operator */
 #define streq(a, b) (!(strcmp(a, b)))
@@ -63,7 +45,7 @@ typedef enum
 
 /* Set FALSE by external calls to fix_func_body,
  *     TRUE  by          calls to fix_initializer_expr */
-boolean in_initializer = FALSE;
+bool in_initializer = FALSE;
 
 /* forward references */
 static typeinfo_pt type_of(node_pt);
@@ -89,7 +71,7 @@ static typeinfo_pt type_natural(void)
 /* return a type type to represent Ada Standard.Natural */
 {
     static typeinfo_pt natural;
-    static symbol_pt sym;
+    static symbol_t* sym;
 
     if(!natural)
     {
@@ -113,7 +95,7 @@ static typeinfo_pt type_ptrdiff(void)
  */
 {
     static typeinfo_pt ptrdiff;
-    static symbol_pt sym;
+    static symbol_t* sym;
 
     if(!ptrdiff)
     {
@@ -137,7 +119,7 @@ static typeinfo_pt type_size_t_(void)
  */
 {
     static typeinfo_pt size_t_;
-    static symbol_pt sym;
+    static symbol_t* sym;
 
     if(!size_t_)
     {
@@ -155,14 +137,14 @@ static typeinfo_pt type_size_t_(void)
     return size_t_;
 }
 
-static symbol_pt predef_new_string_func(void)
+static symbol_t* predef_new_string_func(void)
 {
-    static symbol_pt sym; /* function symbol */
+    static symbol_t* sym; /* function symbol */
 
     if(!sym)
     {
         typeinfo_pt type;
-        symbol_pt parm;
+        symbol_t* parm;
 
         sym = new_sym();
         sym->sym_kind = func_symbol /*tbd*/;
@@ -203,27 +185,27 @@ static node_pt null(typeinfo_pt t)
     return result;
 }
 
-static node_pt value_boolean(boolean v)
+static node_pt value_boolean(bool v)
 {
     node_pt result = v ? one() : zero();
     result->type = type_boolean();
     return result;
 }
 
-static symbol_pt new_tmp_var(typeinfo_pt type, file_pos_t pos)
+static symbol_t* new_tmp_var(typeinfo_pt type, file_pos_t pos)
 /* make up a new tmp var */
 {
     node_pt id = new_pos_node(pos, _Ident, new_string("tmp_var")); /*TBD:generate*/
-    symbol_pt sym = var_declaration(type, id);
+    symbol_t* sym = var_declaration(type, id);
     sym->sym_def = pos;
     gen_ada_var(sym);
     return sym;
 }
 
 static node_pt
-new_tmpvar_node(typeinfo_pt type, ctxt_pt ctxt, file_pos_t pos, node_pt value, boolean emit_initializer)
+new_tmpvar_node(typeinfo_pt type, ctxt_pt ctxt, file_pos_t pos, node_pt value, bool emit_initializer)
 {
-    symbol_pt sym = new_tmp_var(type, pos);
+    symbol_t* sym = new_tmp_var(type, pos);
     node_pt result;
 
     append_decl(ctxt, sym);
@@ -247,19 +229,19 @@ new_tmpvar_node(typeinfo_pt type, ctxt_pt ctxt, file_pos_t pos, node_pt value, b
     return result;
 }
 
-static boolean has_pointer_type(node_pt e)
+static bool has_pointer_type(node_pt e)
 {
     typeinfo_pt t = type_of(e);
     return t->type_kind == pointer_to;
 }
 
-static boolean has_array_type(node_pt e)
+static bool has_array_type(node_pt e)
 {
     typeinfo_pt t = type_of(e);
     return t->type_kind == array_of;
 }
 
-static boolean has_type_univ_int(node_pt e)
+static bool has_type_univ_int(node_pt e)
 {
     if(e->char_lit)
         return FALSE;
@@ -291,7 +273,7 @@ static boolean has_type_univ_int(node_pt e)
     return FALSE;
 }
 
-static boolean is_char_type(typeinfo_pt etype)
+static bool is_char_type(typeinfo_pt etype)
 {
     if(assignment_equal_types(etype, type_char()))
         return TRUE;
@@ -304,7 +286,7 @@ static boolean is_char_type(typeinfo_pt etype)
     return FALSE;
 }
 
-static boolean is_char_array_type(typeinfo_pt t)
+static bool is_char_array_type(typeinfo_pt t)
 {
     return t->type_kind == array_of && is_char_type(t->type_next);
 }
@@ -315,17 +297,17 @@ static boolean is_char_array_type(typeinfo_pt t)
 
 /* forward reference */
 static node_pt
-fix_control_expr(node_pt e, ctxt_pt ctxt, boolean control_bool, boolean pre_ok, boolean post_ok);
+fix_control_expr(node_pt e, ctxt_pt ctxt, bool control_bool, bool pre_ok, bool post_ok);
 
-static symbol_pt find_field(node_pt lnode, node_pt field, boolean indirect)
+static symbol_t* find_field(node_pt lnode, node_pt field, bool indirect)
 /*
  * Find the symbol for the field of struct/union rec with the
  * same name as the field argument. Returns null pointer if
  * there is no such field.
  */
 {
-    symbol_pt recsym;
-    symbol_pt sym;
+    symbol_t* recsym;
+    symbol_t* sym;
     typeinfo_pt ltype = type_of(lnode);
     typeinfo_pt rectype;
 
@@ -354,7 +336,7 @@ static symbol_pt find_field(node_pt lnode, node_pt field, boolean indirect)
             return sym;
         }
     }
-    return (symbol_pt)0;
+    return (symbol_t*)0;
 }
 
 static stmt_pt combine_stmts(stmt_pt s1, stmt_pt s2, stmt_pt s3)
@@ -403,7 +385,7 @@ static stmt_pt fix_stmt_itself(stmt_pt stmt)
 
 static node_pt zero_of_type(typeinfo_pt t);
 
-void fix_func_body(symbol_pt func)
+void fix_func_body(symbol_t* func)
 {
     stmt_pt body;
 
@@ -437,11 +419,11 @@ static typeinfo_pt integral_promotion(typeinfo_pt type)
     switch(type->type_kind)
     {
         case int_type:
-            if(type->_long || type->_long_long)
+            if(type->is_long || type->is_long_long)
                 return type;
-            if(type->_sizeof < SIZEOF_INT)
+            if(type->type_sizeof < SIZEOF_INT)
                 return type_int();
-            if(type->_unsigned)
+            if(type->is_unsigned)
                 return type_unsigned();
             return type_int();
 
@@ -456,36 +438,36 @@ static typeinfo_pt integral_promotion(typeinfo_pt type)
     }
 }
 
-static boolean is_type_long_double(typeinfo_pt t)
+static bool is_type_long_double(typeinfo_pt t)
 {
-    return t->type_kind == float_type && t->_long && t->_sizeof == SIZEOF_DOUBLE;
+    return t->type_kind == float_type && t->is_long && t->type_sizeof == SIZEOF_DOUBLE;
 }
 
-static boolean is_type_double(typeinfo_pt t)
+static bool is_type_double(typeinfo_pt t)
 {
     /* assume that typeof_typespec has been called somewhere along the line */
-    return t->type_kind == float_type && !t->_long && t->_sizeof == SIZEOF_DOUBLE;
+    return t->type_kind == float_type && !t->is_long && t->type_sizeof == SIZEOF_DOUBLE;
 }
 
-static boolean is_type_float(typeinfo_pt t)
+static bool is_type_float(typeinfo_pt t)
 {
-    return t->type_kind == float_type && t->_sizeof == SIZEOF_FLOAT;
+    return t->type_kind == float_type && t->type_sizeof == SIZEOF_FLOAT;
 }
 
-static boolean is_type_unsigned_long(typeinfo_pt t)
+static bool is_type_unsigned_long(typeinfo_pt t)
 {
-    return t->type_kind == int_type && t->_long && t->_unsigned;
+    return t->type_kind == int_type && t->is_long && t->is_unsigned;
 }
 
-static boolean is_type_long(typeinfo_pt t)
+static bool is_type_long(typeinfo_pt t)
 {
-    return t->type_kind == int_type && t->_long && !t->_unsigned;
+    return t->type_kind == int_type && t->is_long && !t->is_unsigned;
 }
 
-static boolean is_type_unsigned(typeinfo_pt t)
+static bool is_type_unsigned(typeinfo_pt t)
 {
     /* assumes type is not short */
-    return t->type_kind == int_type && !t->_long && t->_unsigned;
+    return t->type_kind == int_type && !t->is_long && t->is_unsigned;
 }
 
 static typeinfo_pt common_type(node_pt e1, node_pt e2)
@@ -545,9 +527,9 @@ static typeinfo_pt common_type(node_pt e1, node_pt e2)
     }
 }
 
-static boolean is_void_ptr(typeinfo_pt type)
+static bool is_void_ptr(typeinfo_pt type)
 {
-    symbol_pt basetype = type->type_base;
+    symbol_t* basetype = type->type_base;
     if(!basetype)
         return FALSE;
     return streq(basetype->sym_ada_name, "System.Address");
@@ -557,8 +539,8 @@ static node_pt unchecked_conversion(node_pt e, typeinfo_pt to_type)
 {
     typeinfo_pt from_type = type_of(e);
     file_pos_t pos = e->node_def;
-    symbol_pt conversion;
-    boolean in_header = in_initializer && current_unit_is_header;
+    symbol_t* conversion;
+    bool in_header = in_initializer && current_unit_is_header;
 
     all_types_gened(from_type, pos);
     all_types_gened(to_type, pos);
@@ -572,13 +554,16 @@ static node_pt promote(node_pt e, typeinfo_pt to_type, ctxt_pt ctxt);
 
 static node_pt type_cast(node_pt e, typeinfo_pt to_type)
 {
-    file_pos_t pos = e->node_def;
-    typeinfo_pt from_type = type_of(e);
+    file_pos_t pos;
+    typeinfo_pt from_type;
+    pos = e->node_def;
+    from_type = type_of(e);
+    fprintf(stderr, "type_cast: from_type=%p\n", from_type);
     if(e->char_lit)
+    {
         from_type = type_char();
-
-    if(from_type->type_kind == pointer_to && to_type->type_kind == pointer_to
-       && !(is_void_ptr(from_type) || assignment_equal_types(to_type, from_type)))
+    }
+    if(from_type->type_kind == pointer_to && to_type->type_kind == pointer_to && !(is_void_ptr(from_type) || assignment_equal_types(to_type, from_type)))
     {
         return unchecked_conversion(e, to_type);
     }
@@ -622,7 +607,7 @@ static node_pt type_cast(node_pt e, typeinfo_pt to_type)
          * a special purpose here.
          */
         if(from_type->type_kind == int_type && to_type->type_kind == int_type
-           && !has_type_univ_int(e) && to_type->_unsigned != from_type->_unsigned)
+           && !has_type_univ_int(e) && to_type->is_unsigned != from_type->is_unsigned)
         {
             /* Flag that an unchecked conversion is required */
             /*
@@ -630,14 +615,14 @@ static node_pt type_cast(node_pt e, typeinfo_pt to_type)
              * field that is normally only used for
              * _Int_Number nodes.
              */
-            if(!to_type->_unsigned && to_type->_sizeof > from_type->_sizeof)
+            if(!to_type->is_unsigned && to_type->type_sizeof > from_type->type_sizeof)
             {
                 /* larger signed type can hold all the values
                  * of a smaller unsigned type
                  */
                 result->baseval = FALSE;
             }
-            else if(to_type->_unsigned)
+            else if(to_type->is_unsigned)
             {
                 /* Then, apparently, we need nothing */
                 result->baseval = FALSE;
@@ -655,8 +640,8 @@ static node_pt type_cast(node_pt e, typeinfo_pt to_type)
 static node_pt type_convert(node_pt e, typeinfo_pt to_type)
 {
     typeinfo_pt from_type = type_of(e);
-    boolean to_char_type = is_char_type(to_type);
-    boolean from_char_type = is_char_type(from_type) || e->char_lit;
+    bool to_char_type = is_char_type(to_type);
+    bool from_char_type = is_char_type(from_type) || e->char_lit;
 
     assert(to_type);
     all_types_gened(to_type, e->node_def);
@@ -687,11 +672,11 @@ static node_pt type_convert(node_pt e, typeinfo_pt to_type)
     return type_cast(e, to_type);
 }
 
-static symbol_pt static_string_lit(node_pt text, boolean is_const); /* forward ref */
+static symbol_t* static_string_lit(node_pt text, bool is_const); /* forward ref */
 
-static node_pt ptr_to_static_string_lit(node_pt e, boolean is_const)
+static node_pt ptr_to_static_string_lit(node_pt e, bool is_const)
 {
-    symbol_pt sym = static_string_lit(e, is_const);
+    symbol_t* sym = static_string_lit(e, is_const);
     return new_pos_node(sym->sym_def, _Sym, sym);
 }
 
@@ -707,9 +692,9 @@ static node_pt promote(node_pt e, typeinfo_pt to_type, ctxt_pt ctxt)
 
     if(e->node_kind == _String)
     {
-        boolean sim_types = equal_types(from_type, to_type);
+        bool sim_types = equal_types(from_type, to_type);
 
-        boolean is_const = sim_types ? to_type->type_next->_constant : FALSE;
+        bool is_const = sim_types ? to_type->type_next->is_constant : FALSE;
         node_pt node = ptr_to_static_string_lit(e, is_const);
         return promote(node, to_type, ctxt);
     }
@@ -834,7 +819,7 @@ static typeinfo_pt type_of(node_pt expr)
              * the record containing it.
              */
             {
-                symbol_pt sym;
+                symbol_t* sym;
                 node_pt field = expr->node.binary.r;
                 if(field->node_kind == _Ident)
                 {
@@ -1081,9 +1066,9 @@ static typeinfo_pt ada_type_of(node_pt e)
     return ctype;
 }
 
-static boolean takes_bool(node_pt e)
+static bool takes_bool(node_pt e)
 /* returns TRUE if node_kind is translated in Ada into an
- * operator that takes boolean argument(s).
+ * operator that takes bool argument(s).
  */
 {
     switch(e->node_kind)
@@ -1098,10 +1083,10 @@ static boolean takes_bool(node_pt e)
     }
 }
 
-static boolean gives_bool(node_pt e)
+static bool gives_bool(node_pt e)
 /*
  * returns TRUE iff node_kind is translated into an Ada
- * operator that returns boolean.
+ * operator that returns bool.
  */
 {
     switch(e->node_kind)
@@ -1150,10 +1135,10 @@ static node_pt zero_of_type(typeinfo_pt t)
     return e0;
 }
 
-static node_pt adjust_bool(node_pt e, boolean is_bool)
-/* converts e to or from boolean, as appropriate */
+static node_pt adjust_bool(node_pt e, bool is_bool)
+/* converts e to or from bool, as appropriate */
 {
-    boolean boolexpr = equal_types(type_of(e), type_boolean()) || gives_bool(e);
+    bool boolexpr = equal_types(type_of(e), type_boolean()) || gives_bool(e);
     node_pt result;
     typeinfo_pt t;
     node_pt e0 = 0;
@@ -1226,10 +1211,10 @@ static node_pt fix_expr_Binop_additive(node_pt e, ctxt_pt ctxt, usage_flags flag
 {
     node_pt el = fix_expr(e->node.binary.l, ctxt, 0);
     node_pt er = fix_expr(e->node.binary.r, ctxt, 0);
-    boolean el_is_ptr = has_pointer_type(el);
-    boolean er_is_ptr = has_pointer_type(er);
-    boolean el_is_array = has_array_type(el);
-    boolean er_is_array = has_array_type(er);
+    bool el_is_ptr = has_pointer_type(el);
+    bool er_is_ptr = has_pointer_type(er);
+    bool el_is_array = has_array_type(el);
+    bool er_is_array = has_array_type(er);
     typeinfo_pt el_type = type_of(el);
     typeinfo_pt er_type = type_of(er);
     typeinfo_pt ptrs_type;
@@ -1360,7 +1345,7 @@ static node_pt to_unsigned(node_pt e)
     }
 }
 
-static boolean val_must_be_unsigned(host_int_t val, int size)
+static bool val_must_be_unsigned(host_int_t val, int size)
 {
     /* In bitwise operations involving a literal, we must take
      * care about whether to use a signed operation. If we
@@ -1374,10 +1359,10 @@ static boolean val_must_be_unsigned(host_int_t val, int size)
     return (val >> (nbits - 1)) != 0;
 }
 
-static boolean ok_signing(node_pt e, typeinfo_pt type)
+static bool ok_signing(node_pt e, typeinfo_pt type)
 {
     int size = type_sizeof(type);
-    if(type->_unsigned)
+    if(type->is_unsigned)
         return TRUE;
     switch(e->node_kind)
     {
@@ -1409,8 +1394,8 @@ static node_pt fix_expr_Binop_bitwise(node_pt e, ctxt_pt ctxt, usage_flags usage
     { /* calculate target type */
 
         typeinfo_pt common = common_type(el, er);
-        boolean ok_signing_l = ok_signing(el, common);
-        boolean ok_signing_r = ok_signing(er, common);
+        bool ok_signing_l = ok_signing(el, common);
+        bool ok_signing_r = ok_signing(er, common);
 
         if(ok_signing_l && ok_signing_r)
         {
@@ -1444,7 +1429,7 @@ static node_pt fix_expr_Binop_bitwise(node_pt e, ctxt_pt ctxt, usage_flags usage
     return e;
 }
 
-static boolean has_side_effects(node_pt e)
+static bool has_side_effects(node_pt e)
 {
     switch(e->node_kind)
     {
@@ -1455,7 +1440,7 @@ static boolean has_side_effects(node_pt e)
         case _String:
             return FALSE;
         case _Sym:
-            return e->node.sym->_volatile;
+            return e->node.sym->is_volatile;
         case _List:
         case _Comma:
         case _Dot_Selected:
@@ -1533,7 +1518,7 @@ static boolean has_side_effects(node_pt e)
     }
 }
 
-static boolean is_complicated(node_pt e)
+static bool is_complicated(node_pt e)
 {
     return FALSE;
 }
@@ -1553,7 +1538,7 @@ static node_pt fix_expr_Binop_Assign(node_pt e, ctxt_pt ctxt, usage_flags usage)
 
     if(has_side_effects(e1) || is_complicated(e1))
     {
-        symbol_pt tmpvar = new_tmp_var(type_of(e), e->node_def);
+        symbol_t* tmpvar = new_tmp_var(type_of(e), e->node_def);
 
         tmpvar->renames = TRUE;
         tmpvar->sym_value.initializer = e1;
@@ -1658,7 +1643,7 @@ static node_pt fix_expr_Select(node_pt e, ctxt_pt ctxt, usage_flags usage)
 {
     node_pt el = fix_expr(e->node.binary.l, ctxt, 0);
     node_pt er = fix_expr(e->node.binary.r, ctxt, 0);
-    symbol_pt field = 0;
+    symbol_t* field = 0;
 
     if(er->node_kind == _Ident)
     {
@@ -1717,7 +1702,7 @@ static node_pt fix_expr_Shift(node_pt e, ctxt_pt ctxt, usage_flags usage)
         er = to_natural(er);
     }
 
-    if(type_of(el)->_unsigned)
+    if(type_of(el)->is_unsigned)
     {
         e->node.binary.l = el;
         e->node.binary.r = er;
@@ -1756,7 +1741,7 @@ static node_pt fix_expr_Unop(node_pt e, ctxt_pt ctxt, usage_flags usage)
 /* See also fix_expr_Not, fix_expr_Ones_Complement */
 {
     node_pt esub;
-    boolean to_bool = takes_bool(e);
+    bool to_bool = takes_bool(e);
 
     if(to_bool)
     {
@@ -1789,7 +1774,7 @@ static node_pt fix_expr_Ones_Complement(node_pt e, ctxt_pt ctxt, usage_flags usa
         return fix_expr_Unop(e, ctxt, usage);
 #if 0
 
-	if (itype->_unsigned) {
+	if (itype->is_unsigned) {
 	    esub = promote(esub, itype);
 	} else {
 	    esub = type_convert( esub, type_to_unsigned(itype));
@@ -1954,9 +1939,9 @@ static node_pt fix_expr_Sizeof(node_pt e, ctxt_pt ctxt, usage_flags usage)
     return e;
 }
 
-static symbol_pt next_formal(symbol_pt* formal_iter)
+static symbol_t* next_formal(symbol_t** formal_iter)
 {
-    symbol_pt result;
+    symbol_t* result;
     if(!formal_iter)
     {
         return 0;
@@ -2007,7 +1992,7 @@ static typeinfo_pt arg_promotion(typeinfo_pt type)
     }
 } /* arg_promotion */
 
-static node_pt promote_arg(node_pt e, symbol_pt formal, ctxt_pt ctxt)
+static node_pt promote_arg(node_pt e, symbol_t* formal, ctxt_pt ctxt)
 {
     if(formal)
     {
@@ -2055,7 +2040,7 @@ static node_pt promote_arg(node_pt e, symbol_pt formal, ctxt_pt ctxt)
 
 static node_pt fix_undeclared_func_id(node_pt id, node_pt eArgs, scope_id_t scope)
 {
-    symbol_pt sym;
+    symbol_t* sym;
     file_pos_t pos = id->node_def;
 
     assert(id->node_kind == _Ident);
@@ -2069,7 +2054,7 @@ static node_pt fix_undeclared_func_id(node_pt id, node_pt eArgs, scope_id_t scop
         if(pos_in_current_unit(sym->sym_def))
         {
             /* Function was defined or declared later in same file. */
-            symbol_pt decl = copy_sym(sym);
+            symbol_t* decl = copy_sym(sym);
             decl->has_initializer = FALSE;
             gen_ada_func(decl, scope_parent_func(scope));
         }
@@ -2083,7 +2068,7 @@ static node_pt fix_undeclared_func_id(node_pt id, node_pt eArgs, scope_id_t scop
         /* We have to declare the function */
 
         node_pt declarator;
-        symbol_pt params;
+        symbol_t* params;
 
         if(eArgs)
         {
@@ -2094,7 +2079,7 @@ static node_pt fix_undeclared_func_id(node_pt id, node_pt eArgs, scope_id_t scop
             {
                 typeinfo_pt atype = type_of(*argp);
                 typeinfo_pt ptype = arg_promotion(atype);
-                symbol_pt param = noname_simple_param(ptype);
+                symbol_t* param = noname_simple_param(ptype);
 
                 params = concat_symbols(params, param);
             }
@@ -2118,7 +2103,7 @@ static node_pt fix_expr_Func_Call(node_pt e, ctxt_pt ctxt, usage_flags usage)
     node_pt eFunc = fix_expr(e->node.binary.l, ctxt, USE(Is_called));
     node_pt eArgs = e->node.binary.r;
     typeinfo_pt functype = type_of(eFunc);
-    symbol_pt formals;
+    symbol_t* formals;
 
     if(functype)
     {
@@ -2143,8 +2128,8 @@ static node_pt fix_expr_Func_Call(node_pt e, ctxt_pt ctxt, usage_flags usage)
     {
         node_iter_t arg_iter;
         node_pt* argp;
-        symbol_pt formal;
-        symbol_pt formal_iter = formals;
+        symbol_t* formal;
+        symbol_t* formal_iter = formals;
         node_pt varargs = 0;
         node_pt* varargs_p = 0;
         unit_n unit = pos_unit(e->node_def);
@@ -2210,7 +2195,7 @@ static node_pt fix_expr_Land(node_pt e, ctxt_pt ctxt, usage_flags usage)
          *        return False     s4
          */
         stmt_pt s1, s3pre, s3, s4;
-        symbol_pt localfunc;
+        symbol_t* localfunc;
 
         set_current_scope(scope1);
         s4 = return_bool_stmt(FALSE, e->node_def);
@@ -2252,7 +2237,7 @@ static node_pt fix_expr_Lor(node_pt e, ctxt_pt ctxt, usage_flags usage)
          *        return B         s4
          */
         stmt_pt s1, s2, s4, s4pre;
-        symbol_pt localfunc;
+        symbol_t* localfunc;
         node_pt result;
 
         set_current_scope(scope1);
@@ -2283,7 +2268,7 @@ static node_pt fix_expr_Lor(node_pt e, ctxt_pt ctxt, usage_flags usage)
 static node_pt fix_expr_Cond(node_pt e, ctxt_pt ctxt, usage_flags usage)
 {
     /* TBD: consider is_stmt */
-    symbol_pt tmpvar; /* new tmp var */
+    symbol_t* tmpvar; /* new tmp var */
     node_pt evar; /* node representing tmpvar */
     node_pt e1, e2, e3; /* subexprs of (e1?e2:e3) */
     stmt_pt s2, s3; /* stmts for var = e2, var=e3 */
@@ -2322,7 +2307,7 @@ static node_pt fix_expr_Trivially(node_pt e, ctxt_pt ctxt, usage_flags usage)
 static node_pt fix_expr_Sym(node_pt e, ctxt_pt ctxt, usage_flags usage)
 {
     typeinfo_pt type = type_of(e);
-    symbol_pt sym = e->node.sym;
+    symbol_t* sym = e->node.sym;
     unit_dependency(current_unit(), pos_unit(sym->sym_def), TRUE);
     if(!USAGE(Is_called) && type->type_kind == function_type)
     {
@@ -2531,10 +2516,10 @@ static node_pt string_lit_as_ptr(node_pt e, typeinfo_pt t)
     return result;
 }
 
-static symbol_pt static_string_lit(node_pt text, boolean is_const)
+static symbol_t* static_string_lit(node_pt text, bool is_const)
 {
     static int counter;
-    symbol_pt sym;
+    symbol_t* sym;
 
     sym = new_sym();
     sym->sym_kind = var_symbol;
@@ -2548,7 +2533,7 @@ static symbol_pt static_string_lit(node_pt text, boolean is_const)
      * flag could be set if we were translating a macro or inline function
      * from a header.
      */
-    sym->_declared_in_header = current_unit_is_header && in_initializer;
+    sym->is_declared_in_header = current_unit_is_header && in_initializer;
 
     text->no_nul = TRUE;
 
@@ -2610,7 +2595,7 @@ static stmt_pt ignore_result(node_pt e, ctxt_pt ctxt)
 {
     typeinfo_pt t = type_of(e);
     ctxt_pt ctxt1 = new_context(ctxt_scope(ctxt));
-    symbol_pt sym;
+    symbol_t* sym;
 
     /* These two cases handled in gen_expr */
     if(same_ada_type(t, type_int()))
@@ -2688,10 +2673,10 @@ static stmt_pt fix_stmt_Return(stmt_pt stmt, ctxt_pt ctxt)
 
     if(e && e->type != type_boolean())
     {
-        /* if it were boolean, we would know it was already fixed up */
-        /* But if it's not boolean, we don't turn it into boolean. */
+        /* if it were bool, we would know it was already fixed up */
+        /* But if it's not bool, we don't turn it into bool. */
 
-        symbol_pt func = scope_parent_func(stmt->scope);
+        symbol_t* func = scope_parent_func(stmt->scope);
         typeinfo_pt return_type = func->sym_type->type_next;
         node_pt e1 = promote(fix_expr(e, ctxt, 0), return_type, ctxt);
         func->has_return = TRUE;
@@ -2722,7 +2707,7 @@ static stmt_pt fix_stmt_Return(stmt_pt stmt, ctxt_pt ctxt)
  * is the fixed expression.
  */
 static node_pt
-fix_control_expr(node_pt e, ctxt_pt ctxt, boolean control_bool, boolean pre_ok, boolean post_ok)
+fix_control_expr(node_pt e, ctxt_pt ctxt, bool control_bool, bool pre_ok, bool post_ok)
 {
     scope_id_t scope1 = new_block_scope(ctxt_scope(ctxt));
     ctxt_pt c1 = new_context(scope1);
@@ -2733,7 +2718,7 @@ fix_control_expr(node_pt e, ctxt_pt ctxt, boolean control_bool, boolean pre_ok, 
     if((!pre_ok && changed_pre(c1)) || (!post_ok && changed_post(c1)))
     {
         stmt_pt fstmts;
-        symbol_pt localfunc;
+        symbol_t* localfunc;
 
         /* must create local function */
         if(changed_post(c1))
@@ -2765,9 +2750,9 @@ fix_control_expr(node_pt e, ctxt_pt ctxt, boolean control_bool, boolean pre_ok, 
 
 static stmt_pt fix_controlled_stmt(stmt_pt s,
                                    ctxt_pt ctxt,
-                                   boolean bool_control, /* whether control expr is boolean*/
-                                   boolean pre_ok,
-                                   boolean post_ok)
+                                   bool bool_control, /* whether control expr is bool*/
+                                   bool pre_ok,
+                                   bool post_ok)
 {
     node_pt expr
     = fix_control_expr(s->stmt.controlled.expr, ctxt, bool_control, pre_ok, post_ok);
@@ -2900,7 +2885,7 @@ static stmt_pt fix_stmt_Compound(stmt_pt s, ctxt_pt ctxt)
      * is to make sure that any initializers for declarations
      * get performed.
      */
-    symbol_pt sym;
+    symbol_t* sym;
     int scope_id;
     node_pt expr;
     node_pt assn;
@@ -2919,7 +2904,7 @@ static stmt_pt fix_stmt_Compound(stmt_pt s, ctxt_pt ctxt)
         }
 
         if(sym->sym_kind == var_symbol && sym->sym_scope_id == scope_id
-           && !sym->_static && sym->has_initializer && !sym->emit_initializer)
+           && !sym->is_static && sym->has_initializer && !sym->emit_initializer)
         {
             assert(sym->sym_kind == var_symbol);
             expr = sym->sym_value.initializer;

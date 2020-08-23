@@ -5,20 +5,8 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <string.h>
+#include "c2ada.h"
 
-#include "errors.h"
-#include "host.h"
-#include "files.h"
-#include "hash.h"
-#include "buffer.h"
-#include "cpp.h"
-#include "il.h"
-#include "allocate.h"
-#include "types.h"
-#include "vendor.h"
-#include "units.h"
-#include "symset.h"
-#include "configure.h"
 
 #undef NULL
 #define NULL 0
@@ -27,14 +15,14 @@ extern int Num_Errors;
 
 int enum_reps; /* Flag to force enum reps */
 int export_from_c; /* Flag to export funcs and vars from .c file */
-boolean suppress_record_repspec = TRUE; /* Suppress record rep clauses */
+bool suppress_record_repspec = TRUE; /* Suppress record rep clauses */
 int repspec_flag; /* Flag to force record rep clauses */
 int comment_size; /* Flag to force type size output */
-boolean auto_package = TRUE; /* Flag to gen packages automatically */
+bool auto_package = TRUE; /* Flag to gen packages automatically */
 int flag_unions;
-boolean import_decls = FALSE; /* Import declarations from included headers */
+bool import_decls = FALSE; /* Import declarations from included headers */
 int translate_comments; /* Attempt to retain C comments */
-boolean macro_warnings = TRUE; /* Warn about untranslated macros */
+bool macro_warnings = TRUE; /* Warn about untranslated macros */
 int map_files = 0; /* Map file cbind.map used to map unit names */
 int output_refs = 1; /* Output references from Ada back to C */
 
@@ -232,7 +220,7 @@ char* argv[];
                     break;
                 case 'M':
                 {
-                    extern boolean do_const_macros;
+                    extern bool do_const_macros;
                     do_const_macros = FALSE;
                     break;
                 }

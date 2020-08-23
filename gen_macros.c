@@ -5,27 +5,7 @@
 #include <memory.h>
 #include <string.h>
 #include <ctype.h>
-
-#include "allocate.h"
-#include "errors.h"
-#include "il.h"
-#include "anonymous.h"
-#include "buffer.h"
-#include "cpp.h"
-#include "files.h"
-#include "gen.h"
-#include "gen_macros.h"
-#include "macro.h"
-#include "ada_name.h"
-#include "cpp_hide.h"
-#include "cpp_eval.h"
-#include "format.h"
-#include "units.h"
-#include "stab.h"
-#include "stmt.h"
-#include "types.h"
-#include "comment.h"
-
+#include "c2ada.h"
 macro_t* unit_macros[MAX_UNIQ_FNAMES];
 static macro_t* unknown_macro_list = NULL;
 
@@ -100,7 +80,7 @@ void gen_macro_warnings()
     unknown_macro_list = NULL;
 }
 
-static int could_be_ada_ident(s) register char* s;
+static int could_be_ada_ident(char* s)
 {
     if(!s || !is_alpha((int)s[0]))
         return 0;
@@ -110,7 +90,7 @@ static int could_be_ada_ident(s) register char* s;
     return is_alpha_numeric((int)s[-2]);
 }
 
-static void add_to_unknown_list(unknown) macro_t* unknown;
+static void add_to_unknown_list(macro_t* unknown)
 {
     macro_t* m;
 
@@ -128,7 +108,7 @@ static void add_to_unknown_list(unknown) macro_t* unknown;
     unknown->macro_next = NULL;
 }
 
-static void gen_const_char(name, val) char *name, val;
+static void gen_const_char(char *name, char* val)
 {
     char* buf;
 
@@ -153,9 +133,7 @@ static void gen_const_char(name, val) char *name, val;
     put_char(';');
 }
 
-static void gen_const_int(name, tname, val, base) char *name, *tname;
-host_int_t val;
-int base;
+static void gen_const_int(char* name, char* tname, host_int_t val, int base)
 {
     indent_to(4);
     put_string(name);
@@ -183,8 +161,7 @@ static void gen_const_synonym(char* name, char* tname, char* value)
     put_string(";");
 }
 
-static void gen_const_ref(name, tname, val) char *name, *tname;
-host_int_t val;
+static void gen_const_ref(char* name, char* tname, host_int_t val)
 {
     /* This routine is only called to initialize null pointers */
     assert(val == 0);
@@ -198,8 +175,7 @@ host_int_t val;
     put_string(" := null;");
 }
 
-static void gen_const_float(name, val) char* name;
-char* val;
+static void gen_const_float(char* name, char* val)
 {
     char c, *p;
 
@@ -221,8 +197,7 @@ char* val;
     put_char(';');
 }
 
-static void gen_const_rename(name, unit, typ) char *name, *typ;
-int unit;
+static void gen_const_rename(char* name, int unit, char* typ)
 {
     char* p;
 
@@ -243,7 +218,7 @@ int unit;
     put_char(';');
 }
 
-static void gen_const_bool(name) char* name;
+static void gen_const_bool(char* name)
 {
     indent_to(4);
     put_string(name);
@@ -267,7 +242,7 @@ static void gen_comment(macro_t* m)
 #if 0
 parse_macro( char * body )
 {
-    boolean parsed;
+    bool parsed;
     scan_string_init(body);
     parsed = !yyparse();
 }
@@ -435,7 +410,7 @@ after_coercion:
         }
         else
         {
-            gen_const_rename(m->macro_ada_name, tname, import, "");
+            gen_const_rename(m->macro_ada_name, import, tname);
         }
         gen_comment(m);
         return TRUE;
@@ -648,7 +623,7 @@ symbol_t* sym;
      */
     if((!strcmp(sym->sym_ada_name, m->macro_name)) && (sym->interfaced == 0))
     {
-        output_to(sym->_declared_in_header);
+        output_to(sym->is_declared_in_header);
         interface_c(sym, 4);
         put_char('\n');
         sym->interfaced = 1;
@@ -792,7 +767,7 @@ void gen_macro_vars(macro_t* m, int import, int colonpos)
             if((m->macro_func == NULL) && ((sym = find_sym(m->macro_body)) != NULL)
                && (sym->sym_kind == var_symbol))
             {
-                symbol_pt msym = new_sym();
+                symbol_t* msym = new_sym();
                 *msym = *sym;
 
                 msym->sym_ada_name = m->macro_name;

@@ -7,10 +7,8 @@
 #include <assert.h>
 #include <sys/types.h>
 #include <stdlib.h>
+#include "c2ada.h"
 
-#include "errors.h"
-#include "buffer.h"
-#include "allocate.h"
 
 #undef NULL
 #define NULL 0L

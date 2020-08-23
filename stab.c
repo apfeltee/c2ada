@@ -2,15 +2,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <stdlib.h>
-
-#include "errors.h"
-#include "host.h"
-#include "hash.h"
-#include "files.h"
-#include "il.h"
-#include "allocate.h"
-#include "units.h"
-#include "stab.h"
+#include "c2ada.h"
 
 #undef NULL
 #define NULL 0L
@@ -38,7 +30,7 @@ typedef struct
     scope_kind_t kind;
     scope_id_t parent;
     short int level;
-    symbol_pt sym;
+    symbol_t* sym;
 } scope_info_t, *scope_info_pt;
 
 static scope_stack_info_t scope_info[MAX_SCOPE_LEVEL];
@@ -105,7 +97,7 @@ void set_current_scope(scope_id_t scope)
     current_scope_id = scope;
 }
 
-symbol_pt new_sym(void)
+symbol_t* new_sym(void)
 {
     static symbol_t* free = NULL;
     static int free_index;
@@ -124,7 +116,7 @@ symbol_pt new_sym(void)
     decl->sym_scope = cur_scope_level;
     decl->sym_scope_id = scope_info[cur_scope_level].scope_id;
     decl->traversal_unit = -1;
-    decl->_declared_in_header = current_unit_is_header;
+    decl->is_declared_in_header = current_unit_is_header;
 
     return decl;
 }
@@ -152,7 +144,7 @@ symbol_t* find_sym(name) char* name;
     return NULL;
 }
 
-void store_sym(symbol_pt decl)
+void store_sym(symbol_t* decl)
 {
     int index;
     int level = decl->sym_scope;
@@ -271,7 +263,7 @@ scope_id_t scope_parent(scope_id_t scope)
     return scope_tab[scope]->parent;
 }
 
-symbol_pt scope_symbol(scope_id_t scope)
+symbol_t* scope_symbol(scope_id_t scope)
 {
     return scope_tab[scope]->sym;
 }
@@ -281,9 +273,9 @@ int scope_level(scope_id_t scope)
     return scope_tab[scope]->level;
 }
 
-symbol_pt scope_parent_func(scope_id_t scope)
+symbol_t* scope_parent_func(scope_id_t scope)
 {
-    symbol_pt sym;
+    symbol_t* sym;
     for(; scope; scope = scope_parent(scope))
     {
         if((sym = scope_symbol(scope)))
@@ -302,7 +294,7 @@ void set_scope_parent(scope_id_t scope, scope_id_t parent)
     scope_tab[scope]->parent = parent;
 }
 
-void set_scope_symbol(scope_id_t scope, symbol_pt sym)
+void set_scope_symbol(scope_id_t scope, symbol_t* sym)
 {
     assert(scope != 0);
     scope_tab[scope]->sym = sym;

@@ -2,16 +2,8 @@
 #include <sys/types.h>
 #include <ctype.h>
 #include <setjmp.h>
+#include "c2ada.h"
 
-#include "errors.h"
-#include "host.h"
-#include "files.h"
-#include "hash.h"
-#include "buffer.h"
-#include "cpp.h"
-#include "cpp_hide.h"
-#include "cpp_eval.h"
-#include "allocate.h"
 
 #undef NULL
 #define NULL 0

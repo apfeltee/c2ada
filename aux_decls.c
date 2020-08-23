@@ -2,22 +2,13 @@
 /* $Revision: 1.3 $  $Date: 1999/02/09 18:16:51 $ */
 
 #include <string.h>
-
-#include "aux_decls.h"
-#include "allocate.h"
-#include "gen.h"
-#include "ada_name.h"
-#include "ada_types.h"
-#include "stab.h"
-#include "units.h"
-#include "nodeop.h"
-#include "errors.h"
-#include "format.h"
-
 #undef DEBUG
-#include "Python.h"
-#include "pythonrun.h"
-#include "import.h"
+#include <Python.h>
+#include <pythonrun.h>
+#include <import.h>
+
+#include "c2ada.h"
+
 
 /* Unchecked conversions */
 
@@ -26,8 +17,8 @@ typedef struct unchecked_cvt
     typeinfo_pt from_type;
     typeinfo_pt to_type;
     int unit;
-    symbol_pt cvt_func;
-    boolean in_spec;
+    symbol_t* cvt_func;
+    bool in_spec;
 
     struct unchecked_cvt* next;
 
@@ -36,7 +27,7 @@ typedef struct unchecked_cvt
 unchecked_cvt_pt unchecked_cvt_list, unchecked_cvt_tail;
 
 static void
-new_unchecked_cvt(symbol_pt sym, typeinfo_pt from_type, typeinfo_pt to_type, int unit, boolean in_spec)
+new_unchecked_cvt(symbol_t* sym, typeinfo_pt from_type, typeinfo_pt to_type, int unit, bool in_spec)
 {
     unchecked_cvt_pt uc = allocate(sizeof(unchecked_cvt_t));
     uc->from_type = from_type;
@@ -65,8 +56,8 @@ void gen_unchecked_conversion_funcs(int unit, gen_unchecked_conversion_func_pt g
     }
 }
 
-symbol_pt
-unchecked_conversion_func(typeinfo_pt from_type, typeinfo_pt to_type, file_pos_t pos, boolean in_spec)
+symbol_t*
+unchecked_conversion_func(typeinfo_pt from_type, typeinfo_pt to_type, file_pos_t pos, bool in_spec)
 {
     unchecked_cvt_pt cvt;
     unit_n unit = pos_unit(pos);
@@ -90,7 +81,7 @@ unchecked_conversion_func(typeinfo_pt from_type, typeinfo_pt to_type, file_pos_t
     {
         char* basename = type_nameof(to_type, FALSE, FALSE);
         char* fname = new_strf("To_%s", tail(basename));
-        symbol_pt sym;
+        symbol_t* sym;
 
         sym = new_sym();
         sym->sym_ada_name = ada_name(fname, TRUE);
@@ -144,13 +135,13 @@ void init_unit_dict(void)
 }
 
 /* The symbol for Ada Stdarg.Empty */
-static symbol_pt stdarg_empty_sym;
+static symbol_t* stdarg_empty_sym;
 
 node_pt stdarg_empty_node(file_pos_t pos)
 {
     if(!stdarg_empty_sym)
     {
-        symbol_pt sym = new_sym();
+        symbol_t* sym = new_sym();
         sym->sym_ada_name = "Stdarg.Empty";
         sym->sym_kind = var_symbol;
         sym->intrinsic = TRUE;

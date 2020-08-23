@@ -11,17 +11,8 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include "c2ada.h"
 
-#include "errors.h"
-#include "format.h"
-#include "gen_stmt.h"
-#include "gen_expr.h"
-#include "print.h"
-#include "gen.h"
-#include "allocate.h"
-#include "anonymous.h"
-#include "types.h"
-#include "package.h"
 
 /********************************************
  * stmt, stmt_Slist, Compound, Expr, and Null
@@ -64,7 +55,7 @@ static void must_do_slist(stmt_pt s, int indent, file_pos_t pos)
 
 static void gen_stmt_Compound(stmt_pt s, int indent)
 {
-    symbol_pt sym;
+    symbol_t* sym;
     int scope_id;
 
     if(s == NULL)
@@ -87,7 +78,7 @@ static void gen_stmt_Compound(stmt_pt s, int indent)
             {
                 gen_pkg_def(sym, indent + 4);
             }
-            else if(sym->sym_kind == var_symbol && !sym->_static)
+            else if(sym->sym_kind == var_symbol && !sym->is_static)
             {
                 gen_var_or_field(sym, indent + 4, indent + 16, -1, NULL, 0);
             }
@@ -113,7 +104,7 @@ static void gen_stmt_Compound(stmt_pt s, int indent)
 static void gen_stmt_Expr(stmt_pt s, int indent)
 {
     node_pt e;
-    boolean bracket_call = FALSE;
+    bool bracket_call = FALSE;
     static char* c_call_name;
 
     if(!c_call_name)

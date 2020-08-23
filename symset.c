@@ -3,10 +3,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
-#include "il.h"
-#include "errors.h"
-#include "order.h"
-#include "symset.h"
+#include "c2ada.h"
 
 /* NB: DEBUG is defined in the c2ada code, but used for a different, and
  * here useless, purpose in the Python code.
@@ -16,6 +13,17 @@
 #include <pythonrun.h>
 #include <import.h>
 
+
+#if defined(_WIN32) || defined(_WIN64) || defined(__CYGWIN__)
+    #include <windows.h>
+#endif
+
+/** TODO: gdb fucks up readlink on cygwin */
+#define MONKEYPATCHEDPATH "C:/cloud/local/dev/c2ada/pylibc2ada"
+
+#if !defined(PPATH)
+    #define PPATH "/cygdrive/c/cloud/local/dev/c2ada/:/usr/lib/python2.7"
+#endif
 static PyObject* pymod_Symbol;
 static PyObject* oSymbol;
 
@@ -86,17 +94,32 @@ static char* mydirname(char* s)
 
 static char* getselfpath()
 {
-    enum { maxpath = 1024 * 8 };
+    enum { maxpath = (1024 * 8) };
+    unsigned int len;
     char* tmp;
     char* dname;
     char epath[maxpath];
-    #if defined(__unix__) || defined(__linux__) || defined(__CYGWIN__)
+    #if (defined(__unix__) || defined(__linux__)) && !defined(__CYGWIN__)
+        char respath[maxpath];
+        fprintf(stderr, "getselfpath: reading /proc/self/exe ...\n");
         if(readlink("/proc/self/exe", epath, maxpath) == -1)
         {
             fprintf(stderr, "getselfpath: readlink() failed\n");
             return NULL;
         }
-    #elif (defined(_WIN32) || defined(_WIN64)
+        /* apparently cygwin sometimes appends '\b'. no idea why. */
+        len = strlen(epath);
+        if(epath[len] == '\b')
+        {
+            epath[len] = 0;
+        }
+        fprintf(stderr, "getselfpath: epath: '%s'\n", epath);
+        if((tmp = realpath(epath, respath)) != NULL)
+        {
+            fprintf(stderr, "getselfpath: resolving '%s' into '%s'\n", epath, respath);
+            strcpy(epath, respath);
+        }
+    #elif defined(_WIN32) || defined(_WIN64) || defined(__CYGWIN__)
         if(GetModuleFileName(NULL, epath, maxpath) == 0)
         {
             fprintf(stderr, "getselfpath: GetModuleFileName failed\n");
@@ -116,6 +139,7 @@ static void addsyspath(const char* newpath)
 {
     PyObject* sys;
     PyObject* path;
+    fprintf(stderr, "adding '%s' to sys.path\n", newpath);
     sys = PyImport_ImportModule("sys");
     path = PyObject_GetAttrString(sys, "path");
     PyList_Append(path, PyUnicode_FromString(newpath));
@@ -132,6 +156,9 @@ static void addlocalpath()
         strcat(finalpath, "/");
         strcat(finalpath, "pylibc2ada");
         addsyspath(finalpath);
+        #if defined(MONKEYPATCHEDPATH)
+            addsyspath(MONKEYPATCHEDPATH);
+        #endif
         free(selfp);
     }
     else
@@ -173,15 +200,15 @@ symbols_t new_symbols_set(void)
     return (symbols_t)result;
 }
 
-static PyObject* toPyObject(symbol_pt sym)
+static PyObject* toPyObject(symbol_t* sym)
 {
     return PyInt_FromLong((long)sym);
 }
 
-static symbol_pt fromPyObject(PyObject* obj)
+static symbol_t* fromPyObject(PyObject* obj)
 {
-    /*return (symbol_pt) PyInt_AsLong( obj );*/
-    return (symbol_pt)PyCObject_AsVoidPtr(obj);
+    /*return (symbol_t*) PyInt_AsLong( obj );*/
+    return (symbol_t*)PyCObject_AsVoidPtr(obj);
 }
 
 static PyObject* primSymbol_undone(PyObject* self, PyObject* args)
@@ -189,10 +216,10 @@ static PyObject* primSymbol_undone(PyObject* self, PyObject* args)
     long symaddr;
     if(!PyArg_ParseTuple(args, "l", &symaddr))
         return 0;
-    return PyInt_FromLong((long)!sym_done((symbol_pt)symaddr));
+    return PyInt_FromLong((long)!sym_done((symbol_t*)symaddr));
 }
 
-void symset_add(symbols_t syms, symbol_pt sym)
+void symset_add(symbols_t syms, symbol_t* sym)
 {
     int result;
     PyObject* addr;
@@ -204,10 +231,10 @@ void symset_add(symbols_t syms, symbol_pt sym)
     assert(result != -1);
 }
 
-boolean symset_has(symbols_t syms, symbol_pt sym)
+bool symset_has(symbols_t syms, symbol_t* sym)
 {
     PyObject* symObj = toPyObject(sym);
-    boolean result;
+    bool result;
     result = PyMapping_HasKey((PyObject*)syms, symObj);
     Py_DECREF(symObj);
     return result;
@@ -241,7 +268,7 @@ void symset_filter_undone(symbols_t syms)
 
 /* Symbol abstraction */
 
-PyObject* pySymbol(symbol_pt sym)
+PyObject* pySymbol(symbol_t* sym)
 {
     PyObject* args;
     PyObject* pySym;
@@ -255,7 +282,7 @@ PyObject* pySymbol(symbol_pt sym)
     return pySym;
 }
 
-symbols_t get_undone_requisites(symbol_pt sym)
+symbols_t get_undone_requisites(symbol_t* sym)
 {
     PyObject* pySym = pySymbol(sym);
     PyObject* result;
@@ -265,7 +292,7 @@ symbols_t get_undone_requisites(symbol_pt sym)
     return (symbols_t)result;
 }
 
-void set_undone_requisites(symbol_pt sym, symbols_t syms)
+void set_undone_requisites(symbol_t* sym, symbols_t syms)
 {
     int result;
     PyObject* pySym = pySymbol(sym);
@@ -280,7 +307,7 @@ symmap_t new_symmap(char* mapname)
     return (symmap_t)PyDict_New();
 }
 
-symbol_pt get_symmap(symmap_t map, symbol_pt sym)
+symbol_t* get_symmap(symmap_t map, symbol_t* sym)
 {
     PyObject* dict = (PyObject*)map;
     PyObject* symObj = toPyObject(sym);
@@ -297,7 +324,7 @@ symbol_pt get_symmap(symmap_t map, symbol_pt sym)
     }
 }
 
-void set_symmap(symmap_t map, symbol_pt key, symbol_pt value)
+void set_symmap(symmap_t map, symbol_t* key, symbol_t* value)
 {
     PyObject* dict = (PyObject*)map;
     PyObject* keyObj = toPyObject(key);
