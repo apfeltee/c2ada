@@ -18,8 +18,6 @@
     #define free(x)
 #endif
 #define NEW(type) ((type*)allocate(sizeof(type)))
-#define FALSE 0
-#define TRUE 1
 #ifndef MAX_OUTBUF_LEN
     #define MAX_OUTBUF_LEN 1024
 #endif
@@ -112,7 +110,7 @@
 #define TYPEMOD_INLINE 0x2000
 #define unimplemented() not_implemented(__FILE__, __LINE__)
 
-
+typedef short int scope_id_t;
 typedef unsigned long file_pos_t;
 typedef int file_id_t;
 typedef unsigned long line_nt;
@@ -151,15 +149,6 @@ typedef enum
     ICC, /* Irvine Compiler */
     GNAT
 } vendor_t;
-
-
-
-
-
-/*
- * Scopes
- */
-typedef short int scope_id_t;
 
 /*
  * Possible symbol declarations
@@ -774,6 +763,19 @@ typedef void (*gen_stdarg_concat_func_pt)(typeinfo_pt type);
 
 typedef void (*gen_use_type_decl_pt)(typeinfo_pt type);
 
+extern symbol_t* anonymous_function_pointer;
+extern bool configured;
+extern bool at_file_start;
+extern unsigned char cpp_char_class[];
+extern macro_t* macro_list_head;
+extern struct typeinfo_t* bogus_type;
+extern int max_const_name_indent;
+extern macro_t* unit_macros[];
+extern symbol_t* ellipsis_sym;
+extern bool current_unit_is_header;
+extern char* predef_pkg;
+extern vendor_t ada_compiler;
+
 
 
 bool is_ada_keyword(char*);
@@ -805,7 +807,6 @@ int next_anonymous_ord();
 
 typeinfo_pt find_anonymous_type(typeinfo_pt);
 
-extern symbol_t* anonymous_function_pointer;
 
 void store_anonymous_type(typeinfo_t* typ);
 
@@ -879,7 +880,6 @@ void configure_project(char* filename);
 
 char** configured_reserved_ids(int* count_p);
 
-extern bool configured;
 
 bool configured_source_flag(char* source, char* attribute, bool default_result);
 
@@ -936,7 +936,6 @@ void cpp_system_search_path(char*);
 int in_system_search_path(char*);
 void cpp_show_predefines();
 
-extern bool at_file_start;
 
 
 cpp_eval_result_t cpp_eval(char*);
@@ -961,8 +960,6 @@ cpp_eval_result_t cpp_eval(char*);
 
 
 
-extern unsigned char cpp_char_class[];
-extern macro_t* macro_list_head;
 
 int cpp_getc_from(buffer_t*);
 void cpp_set_state(scan_position_t*, cpp_control_state_t*, scan_position_t**, cpp_control_state_t*);
@@ -1080,12 +1077,10 @@ void print_comment(char*);
 void c_comment(node_t* n);
 bool is_function(symbol_t* subp);
 
-extern struct typeinfo_t* bogus_type;
 
 void gen_access_type(symbol_t* sym, bool private_part);
 typeinfo_t* return_type(symbol_t* subp);
 
-extern int max_const_name_indent;
 char* char_to_string(int c, bool c_string);
 void interface_c(symbol_t* sym, int indent);
 
@@ -1182,7 +1177,6 @@ symbol_t* new_local_func(typeinfo_pt return_type, symbol_t* decls, stmt_pt stmts
 
 
 
-extern macro_t* unit_macros[];
 
 void macro_init(int);
 void macro_undef(char*);
@@ -1404,7 +1398,6 @@ symbol_t* copy_sym(symbol_t*);
 symbol_t* concat_symbols(symbol_t*, symbol_t*);
 symbol_t* grok_enumerator(node_t*, node_t*);
 symbol_t* concat_ellipsis(symbol_t*);
-extern symbol_t* ellipsis_sym;
 
 void grok_declarations(symbol_t*);
 void grok_func_param_decls(symbol_t* fdecl);
@@ -1483,7 +1476,6 @@ symbol_t* private_type_null(symbol_t* tsym);
 void unit_start_gen();
 bool set_unit(unit_n);
 unit_n current_unit();
-extern bool current_unit_is_header;
 bool is_current_unit(unit_n);
 void unit_completed();
 void unit_included(file_pos_t, int);
@@ -1517,7 +1509,6 @@ void set_cur_unit_header_comment(comment_block_pt);
 comment_block_pt cur_unit_trailer_comment();
 void set_cur_unit_trailer_comment(comment_block_pt);
 
-extern char* predef_pkg;
 char* unit_name(unit_n unit);
 
 unit_n nth_ref_unit_ord(int);
@@ -1544,5 +1535,4 @@ bool output_is_spec();
 
 
 
-extern vendor_t ada_compiler;
 

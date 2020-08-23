@@ -65,15 +65,15 @@ static int search_index;
 static char* system_search_paths[MAX_SEARCH] = { "/usr/include" };
 static int system_search_index = 1;
 
-/* at_file_start is set TRUE when a new file is opened,
- * and FALSE once the first token is read from the file.
+/* at_file_start is set true when a new file is opened,
+ * and false once the first token is read from the file.
  */
 bool at_file_start;
 
 /* TBD: this is a temporary flag to bypass the handling of
  * macros as constants until the whole facility works better.
  */
-bool do_const_macros = TRUE;
+bool do_const_macros = true;
 
 /*
  * The following vars control the state of conditionals
@@ -466,7 +466,7 @@ static void push_file(buffer_t* buf, cpp_file_t* f)
     current_unit_is_header = f->is_header = (dot[1] == 'h');
 
     add_position_directive(buf, 1);
-    at_file_start = TRUE;
+    at_file_start = true;
 }
 
 int cpp_open(path) char* path;
@@ -1285,7 +1285,7 @@ static int grok_define(buffer_t* buf, int c)
                         add(buf, '"');
                         buf_init(&lbuf);
                         c = scan_ident(&lbuf, c);
-                        grok_param(buf, &lbuf, formals, nformals, TRUE);
+                        grok_param(buf, &lbuf, formals, nformals, true);
                         add(buf, '"');
                     }
                     break;
@@ -1317,11 +1317,11 @@ static int grok_define(buffer_t* buf, int c)
                             c = next_char();
                             if(c == '*')
                             {
-                                c = scan_c_comment(&cbuf, FALSE);
+                                c = scan_c_comment(&cbuf, false);
                             }
                             else if(c == '/')
                             {
-                                c = scan_cpp_comment(&cbuf, FALSE);
+                                c = scan_cpp_comment(&cbuf, false);
                             }
                             else
                             {
@@ -2283,14 +2283,14 @@ static bool is_const_macro(macro_t* mac)
 /* Test whether macro represents a constant value */
 {
     if(!do_const_macros)
-        return FALSE;
+        return false;
     if(mac->macro_params != -1)
-        return FALSE;
+        return false;
     if(!mac->macro_eval_tried)
     {
         /* try to evaluate the macro as a constant */
         /* TBD: see gen_mconst for more general evaluation */
-        mac->macro_eval_tried = TRUE;
+        mac->macro_eval_tried = true;
         if(mac->macro_body)
         {
             mac->const_value = cpp_eval(mac->macro_body);
@@ -2299,7 +2299,7 @@ static bool is_const_macro(macro_t* mac)
         else
         {
             mac->const_value.eval_result_kind = eval_failed;
-            mac->macro_evald = FALSE;
+            mac->macro_evald = false;
         }
     }
     return mac->macro_evald;
@@ -2426,10 +2426,10 @@ int c;
                         c = next_char();
                         if(c == '*')
                         {
-                            c = scan_c_comment(NULL, FALSE);
+                            c = scan_c_comment(NULL, false);
                         }
                         else if(c == '/')
-                            c = scan_cpp_comment(NULL, FALSE);
+                            c = scan_cpp_comment(NULL, false);
                         break;
                     case '\\':
                         UNHANDLED();
@@ -2507,12 +2507,12 @@ static int scan(buf) buffer_t* buf;
                         if(c == '*')
                         {
                             comment_start(buf);
-                            c = scan_c_comment(want_comments(buf), TRUE);
+                            c = scan_c_comment(want_comments(buf), true);
                         }
                         else if(c == '/')
                         {
                             cpp_comment_start(buf);
-                            c = scan_cpp_comment(want_comments(buf), TRUE);
+                            c = scan_cpp_comment(want_comments(buf), true);
                         }
                         else
                         {

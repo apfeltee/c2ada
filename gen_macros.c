@@ -119,7 +119,7 @@ static void gen_const_char(char *name, char* val)
     putf(": constant %s", ada_version < 1995 ? "Character" : "Char");
     put_string(" := ");
 
-    buf = char_to_string(val, TRUE);
+    buf = char_to_string(val, true);
     if((strlen(buf) == 1) || !strcmp(buf, "\"\""))
     {
         put_char('\'');
@@ -297,7 +297,7 @@ int import;
     {
         gen_const_bool(m->macro_ada_name);
         gen_comment(m);
-        return TRUE;
+        return true;
     }
 
     if(strstr(m->macro_name, "NULL") != NULL)
@@ -329,7 +329,7 @@ int import;
                           packaged_name(mbody->macro_ada_name, m->macro_definition,
                                         mbody->macro_definition));
         gen_comment(m);
-        return TRUE;
+        return true;
     }
 
     result = cpp_eval(m->macro_body);
@@ -384,7 +384,7 @@ int import;
                 }
             }
         }
-        return FALSE;
+        return false;
     }
 
 after_coercion:
@@ -413,7 +413,7 @@ after_coercion:
             gen_const_rename(m->macro_ada_name, import, tname);
         }
         gen_comment(m);
-        return TRUE;
+        return true;
     }
     if(IS_EVAL_FLOAT(result))
     {
@@ -426,13 +426,13 @@ after_coercion:
             gen_const_rename(m->macro_ada_name, import, "");
         }
         gen_comment(m);
-        return TRUE;
+        return true;
     }
     if(IS_EVAL_STRING(result))
     {
         if(import == -1)
         {
-            gen_char_array(m->macro_ada_name, EVAL_STRING(result), is_wide_string, TRUE);
+            gen_char_array(m->macro_ada_name, EVAL_STRING(result), is_wide_string, true);
         }
         else
         {
@@ -442,9 +442,9 @@ after_coercion:
             gen_const_rename(m->macro_ada_name, import, buf);
         }
         gen_comment(m);
-        return TRUE;
+        return true;
     }
-    return FALSE;
+    return false;
 }
 
 static void do_macro_body(buf, ret, coercion, fname, all, params) char *buf,
@@ -773,7 +773,7 @@ void gen_macro_vars(macro_t* m, int import, int colonpos)
                 msym->sym_ada_name = m->macro_name;
                 msym->sym_def = m->macro_definition;
                 msym->comment = m->comment;
-                msym->emitted = FALSE;
+                msym->emitted = false;
 
                 gen_var_or_field(msym, 4, colonpos, import,
                                  combined_name(sym->sym_ada_name, import), 0);
@@ -1236,8 +1236,8 @@ struct typeinfo_t* grok_coercion(coercion_name) char* coercion_name;
         {
             store_anonymous_type(typ);
             new_line();
-            gen_access_type(sym, FALSE);
-            sym->gened = TRUE;
+            gen_access_type(sym, false);
+            sym->gened = true;
         }
         typ = pointer_to_sym(sym);
         p = loc2;

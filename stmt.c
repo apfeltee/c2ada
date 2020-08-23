@@ -49,7 +49,7 @@ stmt_t* new_stmt(stmt_kind_t stmt_kind, file_pos_t pos, bool default_com, commen
 
 stmt_pt new_stmt_Labelled(node_pt label, comment_block_pt com, stmt_pt s)
 {
-    stmt_pt stmt = new_stmt(_Labelled, label->node_def, FALSE, com);
+    stmt_pt stmt = new_stmt(_Labelled, label->node_def, false, com);
     stmt->stmt.label.id = label;
     stmt->stmt.label.stmt = s;
     return stmt;
@@ -57,7 +57,7 @@ stmt_pt new_stmt_Labelled(node_pt label, comment_block_pt com, stmt_pt s)
 
 stmt_pt new_stmt_Case(file_pos_t pos, comment_block_pt com, node_pt expr, stmt_pt s)
 {
-    stmt_pt stmt = new_stmt(_Case, pos, FALSE, com);
+    stmt_pt stmt = new_stmt(_Case, pos, false, com);
     stmt->stmt.label.id = expr;
     stmt->stmt.label.stmt = s;
     return stmt;
@@ -65,26 +65,26 @@ stmt_pt new_stmt_Case(file_pos_t pos, comment_block_pt com, node_pt expr, stmt_p
 
 stmt_pt new_stmt_Default(file_pos_t pos, comment_block_pt com, stmt_pt s)
 {
-    stmt_pt stmt = new_stmt(_Default, pos, FALSE, com);
+    stmt_pt stmt = new_stmt(_Default, pos, false, com);
     stmt->stmt.default_stmt = s;
     return stmt;
 }
 
 stmt_pt new_stmt_Null(file_pos_t pos)
 {
-    return new_stmt(_Null, pos, TRUE, 0);
+    return new_stmt(_Null, pos, true, 0);
 }
 
 stmt_pt new_stmt_Expr(node_pt expr)
 {
-    stmt_pt stmt = new_stmt(_Expr, expr->node_def, TRUE, 0);
+    stmt_pt stmt = new_stmt(_Expr, expr->node_def, true, 0);
     stmt->stmt.expr = expr;
     return stmt;
 }
 
 stmt_pt new_stmt_Compound(file_pos_t pos, symbol_t* decls, stmt_pt s)
 {
-    stmt_pt stmt = new_stmt(_Compound, pos, TRUE, 0);
+    stmt_pt stmt = new_stmt(_Compound, pos, true, 0);
     stmt->stmt.compound.decls = decls;
     stmt->stmt.compound.stmts = s;
     return stmt;
@@ -92,7 +92,7 @@ stmt_pt new_stmt_Compound(file_pos_t pos, symbol_t* decls, stmt_pt s)
 
 stmt_pt new_stmt_If(file_pos_t pos, comment_block_pt com, node_pt cond, stmt_pt s)
 {
-    stmt_pt stmt = new_stmt(_If, pos, FALSE, com);
+    stmt_pt stmt = new_stmt(_If, pos, false, com);
     stmt->stmt.controlled.expr = cond;
     stmt->stmt.controlled.stmt = s;
     return stmt;
@@ -100,7 +100,7 @@ stmt_pt new_stmt_If(file_pos_t pos, comment_block_pt com, node_pt cond, stmt_pt 
 
 stmt_pt new_stmt_Ifelse(file_pos_t pos, comment_block_pt com, node_pt cond, stmt_pt then_stmt, stmt_pt else_stmt)
 {
-    stmt_pt stmt = new_stmt(_Ifelse, pos, FALSE, com);
+    stmt_pt stmt = new_stmt(_Ifelse, pos, false, com);
     stmt->stmt.if_else_stmt.expr = cond;
     stmt->stmt.if_else_stmt.then_stmt = then_stmt;
     stmt->stmt.if_else_stmt.else_stmt = else_stmt;
@@ -109,7 +109,7 @@ stmt_pt new_stmt_Ifelse(file_pos_t pos, comment_block_pt com, node_pt cond, stmt
 
 stmt_pt new_stmt_Switch(file_pos_t pos, comment_block_pt com, node_pt cond, stmt_pt s)
 {
-    stmt_pt stmt = new_stmt(_Switch, pos, FALSE, com);
+    stmt_pt stmt = new_stmt(_Switch, pos, false, com);
     stmt->stmt.controlled.expr = cond;
     stmt->stmt.controlled.stmt = s;
     return stmt;
@@ -117,7 +117,7 @@ stmt_pt new_stmt_Switch(file_pos_t pos, comment_block_pt com, node_pt cond, stmt
 
 stmt_pt new_stmt_While(file_pos_t pos, comment_block_pt com, node_pt expr, stmt_pt s)
 {
-    stmt_pt stmt = new_stmt(_While, pos, FALSE, com);
+    stmt_pt stmt = new_stmt(_While, pos, false, com);
     stmt->stmt.controlled.expr = expr;
     stmt->stmt.controlled.stmt = s;
     return stmt;
@@ -125,7 +125,7 @@ stmt_pt new_stmt_While(file_pos_t pos, comment_block_pt com, node_pt expr, stmt_
 
 stmt_pt new_stmt_Do(file_pos_t pos, comment_block_pt com, node_pt expr, stmt_pt s)
 {
-    stmt_pt stmt = new_stmt(_Do, pos, FALSE, com);
+    stmt_pt stmt = new_stmt(_Do, pos, false, com);
     stmt->stmt.controlled.expr = expr;
     stmt->stmt.controlled.stmt = s;
     return stmt;
@@ -133,7 +133,7 @@ stmt_pt new_stmt_Do(file_pos_t pos, comment_block_pt com, node_pt expr, stmt_pt 
 
 stmt_pt new_stmt_For(file_pos_t pos, comment_block_pt com, node_pt e1, node_pt e2, node_pt e3, stmt_pt s)
 {
-    stmt_pt stmt = new_stmt(_For, pos, FALSE, com);
+    stmt_pt stmt = new_stmt(_For, pos, false, com);
     stmt->stmt.for_stmt.e1 = e1;
     stmt->stmt.for_stmt.e2 = e2;
     stmt->stmt.for_stmt.e3 = e3;
@@ -143,31 +143,31 @@ stmt_pt new_stmt_For(file_pos_t pos, comment_block_pt com, node_pt e1, node_pt e
 
 stmt_pt new_stmt_Goto(file_pos_t pos, node_pt label)
 {
-    stmt_pt stmt = new_stmt(_Goto, pos, TRUE, 0);
+    stmt_pt stmt = new_stmt(_Goto, pos, true, 0);
     stmt->stmt.goto_label = label;
     return stmt;
 }
 
 stmt_pt new_stmt_Continue(file_pos_t pos)
 {
-    return new_stmt(_Continue, pos, TRUE, 0);
+    return new_stmt(_Continue, pos, true, 0);
 }
 
 stmt_pt new_stmt_Break(file_pos_t pos)
 {
-    return new_stmt(_Break, pos, TRUE, 0);
+    return new_stmt(_Break, pos, true, 0);
 }
 
 stmt_pt new_stmt_MacroBody(file_pos_t pos, char* body)
 {
-    stmt_pt stmt = new_stmt(_MacroBody, pos, TRUE, 0);
+    stmt_pt stmt = new_stmt(_MacroBody, pos, true, 0);
     stmt->stmt.macro_body = body;
     return stmt;
 }
 
 stmt_pt new_stmt_Return(file_pos_t pos, node_pt expr)
 {
-    stmt_pt s = new_stmt(_Return, pos, TRUE, 0);
+    stmt_pt s = new_stmt(_Return, pos, true, 0);
     s->stmt.return_value = expr;
     return s;
 }
@@ -176,7 +176,7 @@ stmt_pt new_stmt_Return(file_pos_t pos, node_pt expr)
 
 stmt_pt new_stmt_list(stmt_pt stmt)
 {
-    stmt_pt stmts = new_stmt(_SList, stmt->stmt_def, TRUE, 0);
+    stmt_pt stmts = new_stmt(_SList, stmt->stmt_def, true, 0);
     stmts->stmt.stmt_list.first = stmt;
     stmts->stmt.stmt_list.rest = 0;
     return stmts;

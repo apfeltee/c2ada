@@ -70,7 +70,7 @@ unchecked_conversion_func(typeinfo_pt from_type, typeinfo_pt to_type, file_pos_t
         {
             if(in_spec)
             {
-                cvt->in_spec = TRUE;
+                cvt->in_spec = true;
                 set_unchecked_conversion(unit, in_spec);
             }
             return cvt->cvt_func;
@@ -79,12 +79,12 @@ unchecked_conversion_func(typeinfo_pt from_type, typeinfo_pt to_type, file_pos_t
 
     /* (Else) we'll create a new conversion. */
     {
-        char* basename = type_nameof(to_type, FALSE, FALSE);
+        char* basename = type_nameof(to_type, false, false);
         char* fname = new_strf("To_%s", tail(basename));
         symbol_t* sym;
 
         sym = new_sym();
-        sym->sym_ada_name = ada_name(fname, TRUE);
+        sym->sym_ada_name = ada_name(fname, true);
         sym->sym_type = add_function_type(copy_type(to_type));
         sym->sym_kind = func_symbol;
         sym->sym_def = pos;
@@ -144,7 +144,7 @@ node_pt stdarg_empty_node(file_pos_t pos)
         symbol_t* sym = new_sym();
         sym->sym_ada_name = "Stdarg.Empty";
         sym->sym_kind = var_symbol;
-        sym->intrinsic = TRUE;
+        sym->intrinsic = true;
         /* sym->sym_type  = TBD; */
         /* sym->sym_def   =  TBD ; */
         stdarg_empty_sym = sym;

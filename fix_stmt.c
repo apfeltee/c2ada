@@ -43,9 +43,9 @@ typedef enum
 
 #define USAGE(flag) (usage & USE(flag))
 
-/* Set FALSE by external calls to fix_func_body,
- *     TRUE  by          calls to fix_initializer_expr */
-bool in_initializer = FALSE;
+/* Set false by external calls to fix_func_body,
+ *     true  by          calls to fix_initializer_expr */
+bool in_initializer = false;
 
 /* forward references */
 static typeinfo_pt type_of(node_pt);
@@ -79,9 +79,9 @@ static typeinfo_pt type_natural(void)
 
         sym = new_sym();
         sym->sym_kind = type_symbol;
-        sym->intrinsic = TRUE;
+        sym->intrinsic = true;
         sym->sym_ada_name = "Natural";
-        sym->gened = TRUE;
+        sym->gened = true;
         sym->sym_type = natural;
 
         natural->type_base = sym;
@@ -103,9 +103,9 @@ static typeinfo_pt type_ptrdiff(void)
 
         sym = new_sym();
         sym->sym_kind = type_symbol;
-        sym->intrinsic = TRUE;
+        sym->intrinsic = true;
         sym->sym_ada_name = predef_name_copy("ptrdiff_t");
-        sym->gened = TRUE;
+        sym->gened = true;
         sym->sym_type = ptrdiff;
 
         ptrdiff->type_base = sym;
@@ -127,9 +127,9 @@ static typeinfo_pt type_size_t_(void)
 
         sym = new_sym();
         sym->sym_kind = type_symbol;
-        sym->intrinsic = TRUE;
+        sym->intrinsic = true;
         sym->sym_ada_name = predef_name_copy("size_t");
-        sym->gened = TRUE;
+        sym->gened = true;
         sym->sym_type = size_t_;
 
         size_t_->type_base = sym;
@@ -148,9 +148,9 @@ static symbol_t* predef_new_string_func(void)
 
         sym = new_sym();
         sym->sym_kind = func_symbol /*tbd*/;
-        sym->intrinsic = TRUE;
+        sym->intrinsic = true;
         sym->sym_ada_name = predef_name_copy("New_string");
-        sym->gened = TRUE;
+        sym->gened = true;
 
         /* parameter symbol */
         parm = new_sym();
@@ -215,8 +215,8 @@ new_tmpvar_node(typeinfo_pt type, ctxt_pt ctxt, file_pos_t pos, node_pt value, b
     {
         if(emit_initializer)
         {
-            sym->has_initializer = TRUE;
-            sym->emit_initializer = TRUE;
+            sym->has_initializer = true;
+            sym->emit_initializer = true;
             sym->sym_value.initializer = value;
         }
         else
@@ -244,13 +244,13 @@ static bool has_array_type(node_pt e)
 static bool has_type_univ_int(node_pt e)
 {
     if(e->char_lit)
-        return FALSE;
+        return false;
     if(e->type == type_char())
-        return FALSE;
+        return false;
     if(e->node_kind == _Int_Number)
-        return TRUE;
+        return true;
     if(e->node_kind == _Char_to_Int)
-        return TRUE;
+        return true;
     if(e->node_kind == _Macro_ID)
     {
         macro_t* m = e->node.macro;
@@ -261,29 +261,29 @@ static bool has_type_univ_int(node_pt e)
      */
     if(e->node_kind == _Exp)
     {
-        return TRUE;
+        return true;
     }
     if((e->node_kind == _Mul || e->node_kind == _Div)
        && has_type_univ_int(e->node.binary.l)
        && has_type_univ_int(e->node.binary.r))
     {
-        return TRUE;
+        return true;
     }
 
-    return FALSE;
+    return false;
 }
 
 static bool is_char_type(typeinfo_pt etype)
 {
     if(assignment_equal_types(etype, type_char()))
-        return TRUE;
+        return true;
     /*
      *TBD: other char types. In Ada's Interfaces.C package,
      * Char is the only character type: Plain_char, Signed_char,
      * and Unsigned_char are all integral (or modular) types.
      * So maybe the above test is the only case to concern us.
      */
-    return FALSE;
+    return false;
 }
 
 static bool is_char_array_type(typeinfo_pt t)
@@ -390,7 +390,7 @@ void fix_func_body(symbol_t* func)
     stmt_pt body;
 
     assert(func->has_initializer);
-    in_initializer = FALSE;
+    in_initializer = false;
     body = fix_stmt_itself(func->sym_value.body);
     if(!func->has_return && is_function(func))
     {
@@ -531,7 +531,7 @@ static bool is_void_ptr(typeinfo_pt type)
 {
     symbol_t* basetype = type->type_base;
     if(!basetype)
-        return FALSE;
+        return false;
     return streq(basetype->sym_ada_name, "System.Address");
 }
 
@@ -620,16 +620,16 @@ static node_pt type_cast(node_pt e, typeinfo_pt to_type)
                 /* larger signed type can hold all the values
                  * of a smaller unsigned type
                  */
-                result->baseval = FALSE;
+                result->baseval = false;
             }
             else if(to_type->is_unsigned)
             {
                 /* Then, apparently, we need nothing */
-                result->baseval = FALSE;
+                result->baseval = false;
             }
             else
             {
-                result->baseval = TRUE;
+                result->baseval = true;
             }
         }
         return result;
@@ -694,7 +694,7 @@ static node_pt promote(node_pt e, typeinfo_pt to_type, ctxt_pt ctxt)
     {
         bool sim_types = equal_types(from_type, to_type);
 
-        bool is_const = sim_types ? to_type->type_next->is_constant : FALSE;
+        bool is_const = sim_types ? to_type->type_next->is_constant : false;
         node_pt node = ptr_to_static_string_lit(e, is_const);
         return promote(node, to_type, ctxt);
     }
@@ -1067,7 +1067,7 @@ static typeinfo_pt ada_type_of(node_pt e)
 }
 
 static bool takes_bool(node_pt e)
-/* returns TRUE if node_kind is translated in Ada into an
+/* returns true if node_kind is translated in Ada into an
  * operator that takes bool argument(s).
  */
 {
@@ -1075,17 +1075,17 @@ static bool takes_bool(node_pt e)
     {
         case _Land:
         case _Lor:
-            return TRUE;
+            return true;
         case _Not:
-            return TRUE; /* TBD: is this right? */
+            return true; /* TBD: is this right? */
         default:
-            return FALSE;
+            return false;
     }
 }
 
 static bool gives_bool(node_pt e)
 /*
- * returns TRUE iff node_kind is translated into an Ada
+ * returns true iff node_kind is translated into an Ada
  * operator that returns bool.
  */
 {
@@ -1100,11 +1100,11 @@ static bool gives_bool(node_pt e)
         case _Land:
         case _Lor:
         case _BoolTyp:
-            return TRUE;
+            return true;
         case _Not:
-            return FALSE; /* TBD: Not could be a special case */
+            return false; /* TBD: Not could be a special case */
         default:
-            return FALSE;
+            return false;
     }
 }
 
@@ -1118,7 +1118,7 @@ static node_pt zero_of_type(typeinfo_pt t)
     else if(is_char_type(t))
     {
         e0 = zero();
-        e0->char_lit = TRUE;
+        e0->char_lit = true;
     }
     else if(t->type_kind == int_type)
     {
@@ -1363,7 +1363,7 @@ static bool ok_signing(node_pt e, typeinfo_pt type)
 {
     int size = type_sizeof(type);
     if(type->is_unsigned)
-        return TRUE;
+        return true;
     switch(e->node_kind)
     {
         case _Int_Number:
@@ -1377,11 +1377,11 @@ static bool ok_signing(node_pt e, typeinfo_pt type)
             }
             else
             {
-                return TRUE;
+                return true;
             }
         }
         default:
-            return TRUE;
+            return true;
     }
 }
 
@@ -1438,7 +1438,7 @@ static bool has_side_effects(node_pt e)
         case _Type:
         case _Ident:
         case _String:
-            return FALSE;
+            return false;
         case _Sym:
             return e->node.sym->is_volatile;
         case _List:
@@ -1450,7 +1450,7 @@ static bool has_side_effects(node_pt e)
             return has_side_effects(e->node.binary.l)
                    || has_side_effects(e->node.binary.r);
         case _Func_Call:
-            return TRUE;
+            return true;
         case _Assign:
         case _Mul_Assign:
         case _Div_Assign:
@@ -1462,7 +1462,7 @@ static bool has_side_effects(node_pt e)
         case _Band_Assign:
         case _Xor_Assign:
         case _Bor_Assign:
-            return TRUE;
+            return true;
         case _Eq:
         case _Ne:
         case _Lt:
@@ -1485,12 +1485,12 @@ static bool has_side_effects(node_pt e)
             return has_side_effects(e->node.binary.l)
                    || has_side_effects(e->node.binary.r);
         case _Sizeof:
-            return FALSE;
+            return false;
         case _Pre_Inc:
         case _Pre_Dec:
         case _Post_Inc:
         case _Post_Dec:
-            return TRUE;
+            return true;
 
         case _Addrof:
         case _Unary_Plus:
@@ -1509,18 +1509,18 @@ static bool has_side_effects(node_pt e)
 
         case _Macro_ID:
             /* assuming that it's a constant macro at this point */
-            return FALSE;
+            return false;
 
         case _Aggregate:
         default:
             UNIMPLEMENTED("has_side_effects");
-            return FALSE;
+            return false;
     }
 }
 
 static bool is_complicated(node_pt e)
 {
-    return FALSE;
+    return false;
 }
 
 static node_pt fix_expr_Binop_Assign(node_pt e, ctxt_pt ctxt, usage_flags usage)
@@ -1540,7 +1540,7 @@ static node_pt fix_expr_Binop_Assign(node_pt e, ctxt_pt ctxt, usage_flags usage)
     {
         symbol_t* tmpvar = new_tmp_var(type_of(e), e->node_def);
 
-        tmpvar->renames = TRUE;
+        tmpvar->renames = true;
         tmpvar->sym_value.initializer = e1;
         append_decl(ctxt, tmpvar);
 
@@ -1580,7 +1580,7 @@ static node_pt fix_expr_Type_Cast(node_pt e, ctxt_pt ctxt, usage_flags usage)
         er = e->node.binary.r;
         if(er->node_kind == _String)
         {
-            er = ptr_to_static_string_lit(er, FALSE);
+            er = ptr_to_static_string_lit(er, false);
         }
         return type_convert(er, e->node.binary.l->node.typ);
     }
@@ -1669,7 +1669,7 @@ static node_pt fix_expr_Select(node_pt e, ctxt_pt ctxt, usage_flags usage)
     if(el->node_kind == _Add || el->node_kind == _Sub)
     {
         /* pointer arithmetic */
-        node_pt tmpvar = new_tmpvar_node(type_of(el), ctxt, el->node_def, el, TRUE);
+        node_pt tmpvar = new_tmpvar_node(type_of(el), ctxt, el->node_def, el, true);
         e->node.binary.l = tmpvar;
     }
     else
@@ -1923,7 +1923,7 @@ static node_pt fix_expr_Indirect(node_pt e, ctxt_pt ctxt, usage_flags usage)
     if(base->node_kind == _Add || base->node_kind == _Sub)
     {
         /* pointer arithmetic */
-        node_pt tmpvar = new_tmpvar_node(type_of(base), ctxt, base->node_def, base, TRUE);
+        node_pt tmpvar = new_tmpvar_node(type_of(base), ctxt, base->node_def, base, true);
         e->node.unary = tmpvar;
     }
     else
@@ -2055,12 +2055,12 @@ static node_pt fix_undeclared_func_id(node_pt id, node_pt eArgs, scope_id_t scop
         {
             /* Function was defined or declared later in same file. */
             symbol_t* decl = copy_sym(sym);
-            decl->has_initializer = FALSE;
+            decl->has_initializer = false;
             gen_ada_func(decl, scope_parent_func(scope));
         }
         else
         {
-            unit_dependency(current_unit(), pos_unit(sym->sym_def), TRUE);
+            unit_dependency(current_unit(), pos_unit(sym->sym_def), true);
         }
     }
     else
@@ -2167,7 +2167,7 @@ static node_pt fix_expr_Func_Call(node_pt e, ctxt_pt ctxt, usage_flags usage)
         if(varargs_p)
         {
             *varargs_p = varargs;
-            varargs->fixed = TRUE;
+            varargs->fixed = true;
         }
     }
 
@@ -2198,14 +2198,14 @@ static node_pt fix_expr_Land(node_pt e, ctxt_pt ctxt, usage_flags usage)
         symbol_t* localfunc;
 
         set_current_scope(scope1);
-        s4 = return_bool_stmt(FALSE, e->node_def);
+        s4 = return_bool_stmt(false, e->node_def);
         s3pre = new_stmt_Return(e->node_def, er);
         s3 = combine_stmt_ctxt(s3pre, ctxt1, e->node_def, scope1);
         s1 = new_stmt_Ifelse(el->node_def, 0, el, s3, s4);
 
         localfunc
         = new_local_func(type_boolean(), 0, new_stmt_list(s1), e->node_def, scope1);
-        localfunc->has_return = TRUE;
+        localfunc->has_return = true;
         append_decl(ctxt, localfunc);
         return new_pos_node(e->node_def, _Func_Call,
                             new_pos_node(e->node_def, _Sym, localfunc), 0);
@@ -2241,7 +2241,7 @@ static node_pt fix_expr_Lor(node_pt e, ctxt_pt ctxt, usage_flags usage)
         node_pt result;
 
         set_current_scope(scope1);
-        s2 = return_bool_stmt(TRUE, e->node_def);
+        s2 = return_bool_stmt(true, e->node_def);
 
         s4pre = new_stmt_Return(e->node_def, er);
         s4 = combine_stmt_ctxt(s4pre, ctxt1, e->node_def, scope1);
@@ -2250,7 +2250,7 @@ static node_pt fix_expr_Lor(node_pt e, ctxt_pt ctxt, usage_flags usage)
 
         localfunc
         = new_local_func(type_boolean(), 0, new_stmt_list(s1), e->node_def, scope1);
-        localfunc->has_return = TRUE;
+        localfunc->has_return = true;
         append_decl(ctxt, localfunc);
         result = new_pos_node(e->node_def, _Func_Call,
                               new_pos_node(e->node_def, _Sym, localfunc), 0);
@@ -2280,7 +2280,7 @@ static node_pt fix_expr_Cond(node_pt e, ctxt_pt ctxt, usage_flags usage)
     append_decl(ctxt, tmpvar);
     evar = new_pos_node(e->node_def, _Sym, tmpvar);
 
-    e1 = fix_control_expr(e->node.cond.boolval, ctxt, TRUE, TRUE, FALSE);
+    e1 = fix_control_expr(e->node.cond.boolval, ctxt, true, true, false);
 
     /* NB: e2 and e3 are fixed here: it's important that they be
      * fixed in a separate context (new_stmt_Ifelse) because of
@@ -2308,7 +2308,7 @@ static node_pt fix_expr_Sym(node_pt e, ctxt_pt ctxt, usage_flags usage)
 {
     typeinfo_pt type = type_of(e);
     symbol_t* sym = e->node.sym;
-    unit_dependency(current_unit(), pos_unit(sym->sym_def), TRUE);
+    unit_dependency(current_unit(), pos_unit(sym->sym_def), true);
     if(!USAGE(Is_called) && type->type_kind == function_type)
     {
         return new_pos_node(e->node_def, _Addrof, e);
@@ -2502,17 +2502,17 @@ static node_pt fix_expr(node_pt expr, ctxt_pt ctxt, usage_flags usage)
     {
         warning_at(expr->node_def, "inconsistent type determination during fixup");
     }
-    result->fixed = TRUE;
+    result->fixed = true;
     return result;
 }
 
 static node_pt string_lit_as_ptr(node_pt e, typeinfo_pt t)
 {
     node_pt result;
-    e->no_nul = TRUE;
+    e->no_nul = true;
     result = new_pos_node(e->node_def, _Func_Call,
                           new_pos_node(e->node_def, _Sym, predef_new_string_func()), e);
-    result->fixed = TRUE;
+    result->fixed = true;
     return result;
 }
 
@@ -2535,13 +2535,13 @@ static symbol_t* static_string_lit(node_pt text, bool is_const)
      */
     sym->is_declared_in_header = current_unit_is_header && in_initializer;
 
-    text->no_nul = TRUE;
+    text->no_nul = true;
 
-    sym->has_initializer = TRUE;
+    sym->has_initializer = true;
     sym->sym_value.initializer = string_lit_as_ptr(text, 0);
     sym->sym_type = is_const ? type_const_charp() : type_string();
 
-    sym->gened = TRUE;
+    sym->gened = true;
     gen_ada_lit(sym);
 
     return sym;
@@ -2554,7 +2554,7 @@ node_pt fix_initializer_expr(node_pt e, typeinfo_pt t)
 
     if(e->fixed)
         return e;
-    in_initializer = TRUE;
+    in_initializer = true;
 
     if(!t)
     {
@@ -2605,8 +2605,8 @@ static stmt_pt ignore_result(node_pt e, ctxt_pt ctxt)
 
     all_types_gened(t, e->node_def);
     sym = new_tmp_var(t, e->node_def);
-    sym->has_initializer = TRUE;
-    sym->emit_initializer = TRUE;
+    sym->has_initializer = true;
+    sym->emit_initializer = true;
     sym->sym_value.initializer = e;
     append_decl(ctxt1, sym);
     return combine_stmt_ctxt(0, ctxt1, e->node_def, ctxt_scope(ctxt));
@@ -2654,7 +2654,7 @@ static stmt_pt fix_post_return_expr(node_pt e, ctxt_pt ctxt)
     scope_id_t scope1 = ctxt_scope(ctxt);
 
     /* need a temp variable to hold result */
-    node_pt tmpv = new_tmpvar_node(type_of(e), ctxt, e->node_def, 0, FALSE);
+    node_pt tmpv = new_tmpvar_node(type_of(e), ctxt, e->node_def, 0, false);
     stmt_pt asn_tmpv;
     stmt_pt fstmts;
 
@@ -2679,7 +2679,7 @@ static stmt_pt fix_stmt_Return(stmt_pt stmt, ctxt_pt ctxt)
         symbol_t* func = scope_parent_func(stmt->scope);
         typeinfo_pt return_type = func->sym_type->type_next;
         node_pt e1 = promote(fix_expr(e, ctxt, 0), return_type, ctxt);
-        func->has_return = TRUE;
+        func->has_return = true;
         if(changed_post(ctxt))
         {
             s1 = fix_post_return_expr(e1, ctxt);
@@ -2732,7 +2732,7 @@ fix_control_expr(node_pt e, ctxt_pt ctxt, bool control_bool, bool pre_ok, bool p
             append_stmt(fstmts, new_stmt_Return(e1->node_def, e1));
         }
         localfunc = new_local_func(type_boolean(), decls(c1, 0), fstmts, pos, scope1);
-        localfunc->has_return = TRUE;
+        localfunc->has_return = true;
         append_decl(ctxt, localfunc);
         result = new_pos_node(pos, _Func_Call, new_pos_node(pos, _Sym, localfunc), 0);
     }
@@ -2764,22 +2764,22 @@ static stmt_pt fix_controlled_stmt(stmt_pt s,
 
 static stmt_pt fix_stmt_If(stmt_pt s, ctxt_pt ctxt)
 {
-    return fix_controlled_stmt(s, ctxt, TRUE, TRUE, FALSE);
+    return fix_controlled_stmt(s, ctxt, true, true, false);
 }
 
 static stmt_pt fix_stmt_While(stmt_pt s, ctxt_pt ctxt)
 {
-    return fix_controlled_stmt(s, ctxt, TRUE, FALSE, FALSE);
+    return fix_controlled_stmt(s, ctxt, true, false, false);
 }
 
 static stmt_pt fix_stmt_Do(stmt_pt s, ctxt_pt ctxt)
 {
-    return fix_controlled_stmt(s, ctxt, TRUE, FALSE, TRUE);
+    return fix_controlled_stmt(s, ctxt, true, false, true);
 }
 
 static stmt_pt fix_stmt_Switch(stmt_pt s, ctxt_pt ctxt)
 {
-    node_pt expr = fix_control_expr(s->stmt.controlled.expr, ctxt, FALSE, TRUE, FALSE);
+    node_pt expr = fix_control_expr(s->stmt.controlled.expr, ctxt, false, true, false);
     stmt_pt stmt = s->stmt.controlled.stmt;
 
     if(stmt->stmt_kind == _Compound && !stmt->stmt.compound.decls
@@ -2822,7 +2822,7 @@ static stmt_pt fix_stmt_Ifelse(stmt_pt s, ctxt_pt ctxt)
     stmt_pt sIf;
     stmt_pt sElse;
 
-    expr = fix_control_expr(s->stmt.if_else_stmt.expr, ctxt, TRUE, TRUE, FALSE);
+    expr = fix_control_expr(s->stmt.if_else_stmt.expr, ctxt, true, true, false);
     /* TBD: check context for added post_statements */
     sIf = fix_stmt_itself(s->stmt.if_else_stmt.then_stmt);
     sElse = fix_stmt_itself(s->stmt.if_else_stmt.else_stmt);
@@ -2862,11 +2862,11 @@ static stmt_pt fix_stmt_For(stmt_pt s, ctxt_pt ctxt)
     /* e2 gets turned into control expr in While statement */
     if(s->stmt.for_stmt.e2)
     {
-        e2 = fix_control_expr(s->stmt.for_stmt.e2, ctxt, TRUE, FALSE, FALSE);
+        e2 = fix_control_expr(s->stmt.for_stmt.e2, ctxt, true, false, false);
     }
     else
     {
-        e2 = value_boolean(TRUE);
+        e2 = value_boolean(true);
     }
 
     /* Now we compose the body of the While statement */

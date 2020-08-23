@@ -146,14 +146,20 @@ extern void td(void);
  */
 
 
-NS_ntd  : { yield_typedef(FALSE); }
-        ;
+NS_ntd:
+    {
+        yield_typedef(false);
+    }
+;
 
 /* Once the declarators (if any) are parsed, the scanner is returned
  * to the state where typedef-names are recognized.
  */
-NS_td   : { yield_typedef(TRUE); }
-        ;
+NS_td:
+    {
+        yield_typedef(true);
+    }
+;
 
 /* NS_scope_push creates a new scope in the id/typedef/enum-const
  * name-space. New levels are created by function-declarators
@@ -162,40 +168,73 @@ NS_td   : { yield_typedef(TRUE); }
  * followed, at the end of the scope of that declarator,
  * by an NS_scope_pop.
  */
-NS_scope_push  : { scope_push(Unspecified_scope); td(); }
-    ;
-NS_scope_pop : { scope_pop(); }
-    ;
+NS_scope_push:
+    {
+        scope_push(Unspecified_scope);
+        td();
+    }
+;
 
-NS_block_scope_push : { scope_push(Block_scope); td(); }
-    ;
+NS_scope_pop:
+    {
+        scope_pop();
+    }
+;
+
+NS_block_scope_push:
+    {
+        scope_push(Block_scope);
+        td();
+    }
+;
 
 /* NS_struct_push creates a new name-space for a struct or union
  * NS_struct_pop finishes one.
  */
-NS_struct_push : { td(); }
+NS_struct_push:
+    {
+        td();
+    }
 ;
 
-NS_struct_pop:   /* { struct_pop(); } */
+NS_struct_pop:
+    {
+        /* struct_pop(); */
+    }
 ;
 
-NS_id: /* { new_declaration(name_space_decl); } */
+NS_id:
+    {
+        /* new_declaration(name_space_decl); */
+    }
 ;
 
 /* Begin a new declaration of a parameter */
-NS_new_parm: { td(); }
+NS_new_parm:
+    {
+        td();
+    }
 ;
 
 /* Remember that declarators while define typedef-names. */
-NS_is_typedef:  /* { set_typedef(); } */
+NS_is_typedef:
+    {
+        /* set_typedef(); */
+    }
 ;
 
 /* Finish a direct-declarator */
-NS_direct_decl:           /* { direct_declarator(); } */
+NS_direct_decl:
+    {
+        /* direct_declarator(); */
+    }
 ;
 
 /* Finish a pointer-declarator */
-NS_ptr_decl: /* { pointer_declarator(); } */
+NS_ptr_decl: 
+    {
+        /* pointer_declarator(); */
+    }
 ;
 
 /* The scanner must be aware of the name-space which
@@ -208,11 +247,14 @@ NS_ptr_decl: /* { pointer_declarator(); } */
  * production...
  */
 
-identifier
-        : NS_ntd TYPEDEF_NAME NS_td     {$$ = id_from_typedef($2);}
-        | IDENTIFIER
-        ;
-
+identifier:
+    NS_ntd TYPEDEF_NAME NS_td
+        {
+            $$ = id_from_typedef($2);
+        }
+    | IDENTIFIER
+;
+
 /************************************************************
  *****************  The C grammar per se. *******************
  ************************************************************/
@@ -228,14 +270,14 @@ identifier
  * MARKER is a special token that's used to delimit this usage.
  */
 
-translation_unit
-    : /* empty */
+translation_unit: 
+        /* empty */
     | translation_unit external_declaration
 /*
     | MARKER expression MARKER
            { process_macro_expression($2); }
  */
-    ;
+;
 
 external_declaration
     : NS_id .com function_definition         {define_func($3,$2);}

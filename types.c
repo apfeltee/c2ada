@@ -242,7 +242,7 @@ static int equal_tags(t1, t2) typeinfo_t *t1, *t2;
     /* If two type syms share (i.e. point to, not just string equality),
        the same name, they're the same type. */
     if(bt1->sym_ada_name == bt2->sym_ada_name)
-        return TRUE;
+        return true;
 
     /* otherwise 2 pointers to unknown structs will have the same type */
     if((bt1->sym_tags == NULL) && (bt2->sym_tags == NULL))
@@ -254,7 +254,7 @@ static int equal_tags(t1, t2) typeinfo_t *t1, *t2;
 static bool void_param_list(symbol_t* formals)
 {
     if(!formals)
-        return TRUE;
+        return true;
     assert(formals->sym_type);
     return (formals->sym_type->type_kind == void_type);
 }
@@ -270,7 +270,7 @@ static bool equal_formals(typeinfo_pt t1, typeinfo_pt t2)
      * to be equivalent.
      */
     if(void_param_list(f1) && void_param_list(f2))
-        return TRUE;
+        return true;
 
     for(s1 = f1, s2 = f2; s1 && s2; s1 = s1->sym_parse_list, s2 = s2->sym_parse_list)
     {
@@ -278,10 +278,10 @@ static bool equal_formals(typeinfo_pt t1, typeinfo_pt t2)
         if(s1 == ellipsis_sym)
             return s2 == ellipsis_sym;
         if(s2 == ellipsis_sym)
-            return FALSE;
+            return false;
 
         if(!equal_types(s1->sym_type, s2->sym_type))
-            return FALSE;
+            return false;
     }
     return !s1 && !s2;
 }
@@ -290,7 +290,7 @@ static bool equal_formals(typeinfo_pt t1, typeinfo_pt t2)
  * Type comparison routine.
  */
 static bool matching_types(typeinfo_t* t1, typeinfo_t* t2, bool assignment)
-/* assignment==TRUE if we're trying to assign a t2 to a t1 */
+/* assignment==true if we're trying to assign a t2 to a t1 */
 {
     if(t1 == NULL)
         return 0;
@@ -320,9 +320,9 @@ static bool matching_types(typeinfo_t* t1, typeinfo_t* t2, bool assignment)
         if(t1->is_constant != t2->is_constant)
         {
             if(!assignment)
-                return FALSE;
+                return false;
             if(t2->is_constant)
-                return FALSE;
+                return false;
         }
         if(t1->is_long != t2->is_long)
             return 0;
@@ -348,7 +348,7 @@ static bool matching_types(typeinfo_t* t1, typeinfo_t* t2, bool assignment)
                  * argument types must be equal.
                  */
                 if(!equal_formals(t1, t2))
-                    return FALSE;
+                    return false;
                 continue; /* return types must be the same */
             default:
                 break;
@@ -360,12 +360,12 @@ static bool matching_types(typeinfo_t* t1, typeinfo_t* t2, bool assignment)
 
 bool equal_types(typeinfo_pt t1, typeinfo_pt t2)
 {
-    return matching_types(t1, t2, FALSE);
+    return matching_types(t1, t2, false);
 }
 
 bool assignment_equal_types(typeinfo_pt t1, typeinfo_pt t2)
 {
-    return matching_types(t1, t2, TRUE);
+    return matching_types(t1, t2, true);
 }
 
 /*
@@ -489,26 +489,26 @@ static void init_common_types(void)
 
     /* signed char */
     type[I_signed_char] = t = typeof_int();
-    t->is_signed = TRUE;
+    t->is_signed = true;
     t->type_sizeof = SIZEOF_CHAR;
     t->type_alignof = ALIGNOF_CHAR;
 
     /* unsigned char */
     type[I_unsigned_char] = t = typeof_int();
-    t->is_unsigned = TRUE;
+    t->is_unsigned = true;
     t->type_sizeof = SIZEOF_CHAR;
     t->type_alignof = ALIGNOF_CHAR;
 
     /* short int */
     type[I_short] = t = typeof_int();
-    t->is_short = TRUE;
+    t->is_short = true;
     t->type_sizeof = SIZEOF_SHORT;
     t->type_alignof = ALIGNOF_SHORT;
 
     /* unsigned short int */
     type[I_unsigned_short] = t = typeof_int();
-    t->is_short = TRUE;
-    t->is_unsigned = TRUE;
+    t->is_short = true;
+    t->is_unsigned = true;
     t->type_sizeof = SIZEOF_SHORT;
     t->type_alignof = ALIGNOF_SHORT;
 
@@ -568,7 +568,7 @@ static void init_common_types(void)
     type[I_string] = get_anonymous_type(t)->sym_type;
 
     t = add_pointer_type(typeof_char());
-    t->type_next->is_constant = TRUE;
+    t->type_next->is_constant = true;
     type[I_const_charp] = get_anonymous_type(t)->sym_type;
 
     /* char_array (char[]) */
@@ -758,9 +758,9 @@ bool inline_decl(typeinfo_pt type)
     for(t = type; t; t = t->type_next)
     {
         if(t->is_inline)
-            return TRUE;
+            return true;
     }
-    return FALSE;
+    return false;
 }
 
 bool static_decl(typeinfo_pt t, bool erase)
@@ -768,12 +768,12 @@ bool static_decl(typeinfo_pt t, bool erase)
     if(t->is_static)
     {
         if(erase)
-            t->is_static = FALSE;
-        return TRUE;
+            t->is_static = false;
+        return true;
     }
     if(t->type_next)
         return static_decl(t->type_next, erase);
-    return FALSE;
+    return false;
 }
 
 static symbol_t* sym_decl(typeinfo_pt typ, node_pt n, bool uniq)
@@ -805,7 +805,7 @@ static symbol_t* sym_decl(typeinfo_pt typ, node_pt n, bool uniq)
     if(!sym->sym_type)
     {
         sym->sym_type = copy_type(typ);
-        sym->is_static = static_decl(sym->sym_type, TRUE);
+        sym->is_static = static_decl(sym->sym_type, true);
     }
 
     /* if declaration (i.e. type) was marked inline, mark
@@ -1821,7 +1821,7 @@ static void grok_decl(symbol_t* sym)
                     if(sym->has_initializer
                        && pos_unit(sym->sym_def) == pos_unit(dup->sym_def))
                     {
-                        dup->interfaced = TRUE;
+                        dup->interfaced = true;
                     }
                 }
 
@@ -1829,7 +1829,7 @@ static void grok_decl(symbol_t* sym)
                 {
                     if(!dup || sym->has_initializer)
                     {
-                        sym->gened = TRUE;
+                        sym->gened = true;
                         gen_ada_func(sym, 0);
                     }
                 }
@@ -2165,7 +2165,7 @@ static symbol_t* gen_rec_sym(node_pt id, typeinfo_pt typ)
     prefix = (typ->type_kind == struct_of) ? STRUCT_PREFIX : UNION_PREFIX;
     id->node.id.name = new_strf("%c%s", prefix, id->node.id.name);
 
-    sym = sym_decl(typ, id, TRUE);
+    sym = sym_decl(typ, id, true);
     sym->sym_kind = type_symbol;
 
     sym->sym_type->type_base = sym;
@@ -2239,7 +2239,7 @@ int prefix, len;
     return result;
 }
 
-bool new_naming_scheme = FALSE;
+bool new_naming_scheme = false;
 
 symbol_t* anonymous_enum(literals) symbol_t* literals;
 {
@@ -2257,7 +2257,7 @@ symbol_t* anonymous_enum(literals) symbol_t* literals;
       new_node(_Ident, gen_type_name(ENUM_PREFIX));
 
     sym->sym_ada_name = ada_name(sym->sym_ident->node.id.name, pos_unit(sym->sym_def));
-    sym->is_created_name = TRUE;
+    sym->is_created_name = true;
     grok_enum_lits(literals, sym->sym_type);
     add_tags(sym, literals);
     return sym;
@@ -2395,7 +2395,7 @@ symbol_t* tags;
     sym->sym_type = rtyp;
     sym->sym_kind = type_symbol;
     sym->sym_ident = new_node(_Ident, anonymous_rec_name(is_union));
-    sym->is_created_name = TRUE;
+    sym->is_created_name = true;
     sym->sym_ada_name = ada_name(sym->sym_ident->node.id.name, pos_unit(sym->sym_def));
     sym->sym_tags = tags;
 
@@ -2460,7 +2460,7 @@ symbol_t* named_rec(bool is_union, node_pt id, symbol_t* tags)
 
             rtyp = typeof_rec(is_union);
             newsym = gen_rec_sym(id, rtyp);
-            sym->aliases = TRUE;
+            sym->aliases = true;
             sym->sym_value.aliased_sym = newsym;
             store_sym(newsym);
 
@@ -2526,7 +2526,7 @@ symbol_t* rec_reference(bool is_union, node_pt id)
     {
         rtyp = typeof_rec(is_union);
         sym = gen_rec_sym(id, rtyp);
-        sym->is_created_by_reference = TRUE;
+        sym->is_created_by_reference = true;
         store_sym(sym);
     }
 
@@ -2712,7 +2712,7 @@ symbol_t* field_declaration(typeinfo_t* tlist, node_t* vlist)
     /* mark symbols as being struct/union members */
     for(sym = decl_list; sym; sym = sym->sym_parse_list)
     {
-        sym->is_struct_or_union_member = TRUE;
+        sym->is_struct_or_union_member = true;
     }
 
     return set_symbol_kind(decl_list);
@@ -2796,13 +2796,13 @@ static symbol_t* abstract_param(typeinfo_t* typ, node_t* adecl, bool named)
 symbol_t* noname_abstract_param(typ, adecl) typeinfo_t* typ;
 node_t* adecl;
 {
-    return abstract_param(typ, adecl, FALSE);
+    return abstract_param(typ, adecl, false);
 }
 
 symbol_t* named_abstract_param(typ, adecl) typeinfo_t* typ;
 node_t* adecl;
 {
-    return abstract_param(typ, adecl, TRUE);
+    return abstract_param(typ, adecl, true);
 }
 
 typeinfo_t* abstract_declarator_type(typeinfo_pt typ, node_pt adecl)
@@ -2952,7 +2952,7 @@ symbol_t* private_type_null(symbol_t* tsym)
     nsym->sym_scope = tsym->sym_scope;
     nsym->sym_def = tsym->sym_def;
     nsym->sym_type = tsym->sym_type;
-    nsym->private = TRUE;
+    nsym->private = true;
 
     sprintf(name, "null_%s", tsym->sym_ada_name);
     nsym->sym_ada_name = ada_name(name, pos_unit(nsym->sym_def));

@@ -34,7 +34,7 @@ void gen_zero(typeinfo_pt t)
             symbol_t* tsym = t->type_base;
             symbol_t* fields = tsym->sym_tags;
             typeinfo_pt t1;
-            bool first = TRUE;
+            bool first = true;
             put_string("(");
             for(fields = tsym->sym_tags; fields; fields = fields->sym_parse_list)
             {
@@ -43,7 +43,7 @@ void gen_zero(typeinfo_pt t)
                     /* 1-field structs require named component association */
                     putf("%s => ", fields->sym_ada_name);
                 }
-                first = FALSE;
+                first = false;
 
                 t1 = fields->sym_type;
                 gen_zero(t1);
@@ -67,11 +67,11 @@ void gen_zero(typeinfo_pt t)
 static bool is_string_lit(node_pt e)
 {
     if(e->node_kind == _String)
-        return TRUE;
+        return true;
     if(e->node_kind == _Type_Cast && e->node.binary.r->node_kind == _String
        && e->node.binary.l->node.typ->type_kind == array_of)
-        return TRUE;
-    return FALSE;
+        return true;
+    return false;
 }
 
 static node_pt gen_agg_item(typeinfo_pt t, node_pt e)
@@ -121,7 +121,7 @@ node_pt gen_initializer(typeinfo_pt t, node_pt e)
         case pointer_to:
             /* TBD: check type? */
             /* TBD: ignore braces */
-            gen_expr(e, FALSE);
+            gen_expr(e, false);
             return 0;
 
         case array_of:
@@ -142,12 +142,12 @@ node_pt gen_initializer(typeinfo_pt t, node_pt e)
             {
                 if(is_string_lit(e))
                 {
-                    gen_expr(e, FALSE);
+                    gen_expr(e, false);
                     return 0;
                 }
                 if(e->node_kind == _Aggregate && is_string_lit(e->node.unary))
                 {
-                    gen_expr(e->node.unary, FALSE);
+                    gen_expr(e->node.unary, false);
                     return 0;
                 }
             }
@@ -161,7 +161,7 @@ node_pt gen_initializer(typeinfo_pt t, node_pt e)
             {
                 enext = e;
                 assert(size >= 0);
-                singleton = FALSE;
+                singleton = false;
             }
 
             put_string("(");
@@ -192,7 +192,7 @@ node_pt gen_initializer(typeinfo_pt t, node_pt e)
         {
             node_pt enext;
             symbol_t* fnext; /* next field */
-            bool first = TRUE;
+            bool first = true;
 
             if(e->node_kind == _Aggregate)
             {
@@ -209,7 +209,7 @@ node_pt gen_initializer(typeinfo_pt t, node_pt e)
             {
                 if(first)
                 {
-                    first = FALSE;
+                    first = false;
                     if(!fnext->sym_parse_list)
                     {
                         /* We must use "named component association"

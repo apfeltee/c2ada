@@ -28,7 +28,7 @@ static bool is_const_int(node_pt n)
     switch(n->node_kind)
     {
         case _Int_Number:
-            return TRUE;
+            return true;
         case _Sym:
             assert(n->node.sym);
             return n->node.sym->sym_kind == enum_literal;
@@ -38,7 +38,7 @@ static bool is_const_int(node_pt n)
             return m->macro_evald && m->const_value.eval_result_kind == eval_int;
         }
         default:
-            return FALSE;
+            return false;
     }
 }
 
@@ -48,14 +48,14 @@ static bool is_const_fp(node_pt n)
     switch(n->node_kind)
     {
         case _FP_Number:
-            return TRUE;
+            return true;
         case _Macro_ID:
         {
             macro_t* m = n->node.macro;
             return m->macro_evald && m->const_value.eval_result_kind == eval_float;
         }
         default:
-            return FALSE;
+            return false;
     }
 }
 
@@ -246,12 +246,12 @@ node_pt* node_iter_tail(node_iter_t* iter)
 bool is_null_ptr_value(node_pt e)
 {
     if(e->node_kind == _Int_Number && e->node.ival == 0)
-        return TRUE;
+        return true;
     if(e->node_kind == _Macro_ID && streq(e->node.macro->macro_name, "NULL"))
     {
-        return TRUE;
+        return true;
     }
-    return FALSE;
+    return false;
 }
 
 static node_pt new_node_v(node_kind_t kind, va_list args)

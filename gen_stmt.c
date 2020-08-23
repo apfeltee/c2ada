@@ -104,7 +104,7 @@ static void gen_stmt_Compound(stmt_pt s, int indent)
 static void gen_stmt_Expr(stmt_pt s, int indent)
 {
     node_pt e;
-    bool bracket_call = FALSE;
+    bool bracket_call = false;
     static char* c_call_name;
 
     if(!c_call_name)

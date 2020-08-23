@@ -8,7 +8,7 @@
 bool same_ada_type(typeinfo_pt t1, typeinfo_pt t2)
 {
     if(!equal_types(t1, t2))
-        return FALSE;
+        return false;
 
     if(t1->type_base && t2->type_base)
     {
@@ -19,5 +19,5 @@ bool same_ada_type(typeinfo_pt t1, typeinfo_pt t2)
     {
         return same_ada_type(t1->type_next, t2->type_next);
     }
-    return TRUE;
+    return true;
 }

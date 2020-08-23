@@ -22,10 +22,10 @@
 file_pos_t yypos;
 static int yyc;
 static int skipping_compound_statements;
-static bool at_line_start = TRUE;
+static bool at_line_start = true;
 static node_t* last_ident;
 
-/* When this flag is TRUE, a typedef-name token will be returned
+/* When this flag is true, a typedef-name token will be returned
  * as an IDENTIFIER; otherwise as a TYPEDEF_NAME
  */
 static bool typedef_name_as_id;
@@ -42,7 +42,7 @@ void yyerror(msg) char* msg;
 
 void td(void)
 {
-    yield_typedef(TRUE);
+    yield_typedef(true);
 }
 
 void yylex_init()
@@ -54,7 +54,7 @@ static void end_line()
 {
     yypos++;
     last_ident = NULL;
-    at_line_start = TRUE;
+    at_line_start = true;
 }
 
 static int magnitude(c, val) int c;
@@ -93,7 +93,7 @@ host_int_t* val;
 }
 
 static int grok_number(bool fraction)
-/* fraction is TRUE if the character previous to yyc was '.' */
+/* fraction is true if the character previous to yyc was '.' */
 {
     host_int_t val;
     int base;
@@ -403,7 +403,7 @@ static int scan_char_const()
 
 end_char_const:
     yylval.nod = new_node(_Int_Number, cval, 10);
-    yylval.nod->char_lit = TRUE;
+    yylval.nod->char_lit = true;
     return CHARACTER_CONSTANT;
 }
 
@@ -849,7 +849,7 @@ int yylex(void)
     {
         set_cur_unit_header_comment(fetch_comment_block());
     }
-    at_file_start = FALSE;
+    at_file_start = false;
     return result;
 }
 
@@ -881,11 +881,11 @@ static int next_token(void)
                 yyc = cpp_getc();
                 break;
             case DIGIT | XDIGIT:
-                at_line_start = FALSE;
-                return grok_number(FALSE);
+                at_line_start = false;
+                return grok_number(false);
             case ALPHA:
             case ALPHA | XDIGIT:
-                at_line_start = FALSE;
+                at_line_start = false;
                 return grok_ident();
             case MSTART:
                 grok_directive();
@@ -902,34 +902,34 @@ static int next_token(void)
                             if(yyc == '.')
                             {
                                 yyc = cpp_getc();
-                                at_line_start = FALSE;
+                                at_line_start = false;
                                 return ELLIPSIS;
                             }
-                            at_line_start = FALSE;
+                            at_line_start = false;
                             return DOTDOT;
                         }
                         else if(is_digit(yyc))
                         {
                             /* This is a floating point number starting with '.' */
-                            return grok_number(TRUE);
+                            return grok_number(true);
                         }
                         break;
                     case '\"':
-                        at_line_start = FALSE;
+                        at_line_start = false;
                         return scan_string();
                     case '\'':
-                        at_line_start = FALSE;
+                        at_line_start = false;
                         return scan_char_const();
                     case '&':
                         switch(yyc)
                         {
                             case '&':
                                 yyc = cpp_getc();
-                                at_line_start = FALSE;
+                                at_line_start = false;
                                 return AND_OP;
                             case '=':
                                 yyc = cpp_getc();
-                                at_line_start = FALSE;
+                                at_line_start = false;
                                 return AND_ASSIGN;
                         }
                         break;
@@ -937,7 +937,7 @@ static int next_token(void)
                         if(yyc == '=')
                         {
                             yyc = cpp_getc();
-                            at_line_start = FALSE;
+                            at_line_start = false;
                             return XOR_ASSIGN;
                         }
                         break;
@@ -946,11 +946,11 @@ static int next_token(void)
                         {
                             case '|':
                                 yyc = cpp_getc();
-                                at_line_start = FALSE;
+                                at_line_start = false;
                                 return OR_OP;
                             case '=':
                                 yyc = cpp_getc();
-                                at_line_start = FALSE;
+                                at_line_start = false;
                                 return OR_ASSIGN;
                         }
                         break;
@@ -958,7 +958,7 @@ static int next_token(void)
                         if(yyc == '=')
                         {
                             yyc = cpp_getc();
-                            at_line_start = FALSE;
+                            at_line_start = false;
                             return MUL_ASSIGN;
                         }
                         break;
@@ -967,7 +967,7 @@ static int next_token(void)
                         {
                             case '=':
                                 yyc = cpp_getc();
-                                at_line_start = FALSE;
+                                at_line_start = false;
                                 return DIV_ASSIGN;
                             case '*':
                                 yyc = scan_c_comment(cpp_getc());
@@ -981,7 +981,7 @@ static int next_token(void)
                         if(yyc == '=')
                         {
                             yyc = cpp_getc();
-                            at_line_start = FALSE;
+                            at_line_start = false;
                             return MOD_ASSIGN;
                         }
                         break;
@@ -993,14 +993,14 @@ static int next_token(void)
                                 if(yyc == '=')
                                 {
                                     yyc = cpp_getc();
-                                    at_line_start = FALSE;
+                                    at_line_start = false;
                                     return LEFT_ASSIGN;
                                 }
-                                at_line_start = FALSE;
+                                at_line_start = false;
                                 return LEFT_OP;
                             case '=':
                                 yyc = cpp_getc();
-                                at_line_start = FALSE;
+                                at_line_start = false;
                                 return LE_OP;
                         }
                         break;
@@ -1012,14 +1012,14 @@ static int next_token(void)
                                 if(yyc == '=')
                                 {
                                     yyc = cpp_getc();
-                                    at_line_start = FALSE;
+                                    at_line_start = false;
                                     return RIGHT_ASSIGN;
                                 }
-                                at_line_start = FALSE;
+                                at_line_start = false;
                                 return RIGHT_OP;
                             case '=':
                                 yyc = cpp_getc();
-                                at_line_start = FALSE;
+                                at_line_start = false;
                                 return GE_OP;
                         }
                         break;
@@ -1027,7 +1027,7 @@ static int next_token(void)
                         if(yyc == '=')
                         {
                             yyc = cpp_getc();
-                            at_line_start = FALSE;
+                            at_line_start = false;
                             return EQ_OP;
                         }
                         break;
@@ -1035,7 +1035,7 @@ static int next_token(void)
                         if(yyc == '=')
                         {
                             yyc = cpp_getc();
-                            at_line_start = FALSE;
+                            at_line_start = false;
                             return NE_OP;
                         }
                         break;
@@ -1044,11 +1044,11 @@ static int next_token(void)
                         {
                             case '+':
                                 yyc = cpp_getc();
-                                at_line_start = FALSE;
+                                at_line_start = false;
                                 return INC_OP;
                             case '=':
                                 yyc = cpp_getc();
-                                at_line_start = FALSE;
+                                at_line_start = false;
                                 return ADD_ASSIGN;
                         }
                         break;
@@ -1057,23 +1057,23 @@ static int next_token(void)
                         {
                             case '-':
                                 yyc = cpp_getc();
-                                at_line_start = FALSE;
+                                at_line_start = false;
                                 return DEC_OP;
                             case '=':
                                 yyc = cpp_getc();
-                                at_line_start = FALSE;
+                                at_line_start = false;
                                 return SUB_ASSIGN;
                             case '>':
                                 yyc = cpp_getc();
-                                at_line_start = FALSE;
+                                at_line_start = false;
                                 return PTR_OP;
                         }
                         break;
                     case MARKER_CHAR:
-                        at_line_start = FALSE;
+                        at_line_start = false;
                         return MARKER;
                 }
-                at_line_start = FALSE;
+                at_line_start = false;
                 return token;
             default:
                 assert(0);

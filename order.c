@@ -14,17 +14,17 @@ static void undone_node_requisites(symbols_t syms, node_pt node, unit_n unit);
 bool sym_done(symbol_t* sym)
 {
     if(DONE_MARK(sym))
-        return TRUE;
+        return true;
     if(sym->intrinsic)
-        return TRUE;
+        return true;
     switch(sym->sym_kind)
     {
         case enum_literal:
             return sym_done(sym->sym_type->type_base);
         case param_symbol:
-            return TRUE;
+            return true;
         default:
-            return FALSE;
+            return false;
     }
 }
 
@@ -302,7 +302,7 @@ bool has_undone_requisites(symbol_t* sym)
 
 void set_symbol_done(symbol_t* sym)
 {
-    DONE_MARK(sym) = TRUE;
+    DONE_MARK(sym) = true;
 }
 
 void postpone_doing(symbol_t* sym)

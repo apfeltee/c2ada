@@ -113,15 +113,15 @@ static decl_class_t points_to(typ) typeinfo_t* typ;
 bool simple_array_type(typeinfo_pt type)
 {
     if(decl_class(type) != array_decl)
-        return FALSE;
+        return false;
     assert(type->type_next);
     switch(decl_class(type->type_next))
     {
         case int_decl:
         case fp_decl:
-            return TRUE;
+            return true;
         default:
-            return FALSE;
+            return false;
     }
 }
 
@@ -480,7 +480,7 @@ void gen_char_array(char* name, char* val, bool is_wide_string, bool is_const)
     put_string(is_const ? ": constant " : ": ");
     put_string(string_name(is_wide_string));
     put_string(" := ");
-    print_string_value(val ? val : "", -1, TRUE);
+    print_string_value(val ? val : "", -1, true);
     put_char(';');
 }
 
@@ -567,7 +567,7 @@ void print_string_value(char* val, int expected_len, bool c_string)
 
 void print_char_value(int val)
 {
-    putf(isprint(val) ? "%{'%s'%}" : "%s", char_to_string(val, TRUE));
+    putf(isprint(val) ? "%{'%s'%}" : "%s", char_to_string(val, true));
 }
 
 static void comment_sizeof(size, align) unsigned int size, align;
@@ -893,7 +893,7 @@ int use_parent_type, is_param;
 
     if(basetype)
     {
-        return typesym_nameof(typ, FALSE);
+        return typesym_nameof(typ, false);
     }
 
     return botched_type(typ);
@@ -1174,7 +1174,7 @@ static bool is_anon_function_pointer(typeinfo_pt typ)
     if(typ->type_kind == function_type)
     {
         /* C allows   void f1(void (f2)())  no (*f2), and it's a pointer */
-        return TRUE;
+        return true;
     }
     else if(is_function_pointer(typ))
     {
@@ -1187,17 +1187,17 @@ static bool is_anon_function_pointer(typeinfo_pt typ)
             }
             else
             {
-                return FALSE;
+                return false;
             }
         }
         else
         {
-            return TRUE;
+            return true;
         }
     }
     else
     {
-        return FALSE;
+        return false;
     }
 }
 
@@ -1206,7 +1206,7 @@ static int is_static(sym) symbol_t* sym;
     typeinfo_t* typ;
 
     if(sym->is_static)
-        return TRUE;
+        return true;
 
     /* TBD 1/10/96: change in is_static may invalidate this */
     if(sym->sym_kind == func_symbol)
@@ -1378,7 +1378,7 @@ void gen_var_or_field(symbol_t* sym, /* symbol to gen */
         else if(sym->renames)
         {
             put_string(" renames ");
-            gen_expr(fix_initializer_expr(sym->sym_value.initializer, 0), FALSE);
+            gen_expr(fix_initializer_expr(sym->sym_value.initializer, 0), false);
         }
     }
     if(!sym->is_struct_or_union_member
@@ -1576,7 +1576,7 @@ typeinfo_t* typ;
     }
     else if(typebase && !typebase->emitted && !streq(name, typebase->sym_ada_name))
     {
-        gen_access_type(typebase, FALSE);
+        gen_access_type(typebase, false);
         putf("subtype %s is %s", name, typebase->sym_ada_name);
     }
     else
@@ -1732,13 +1732,13 @@ static bool sym_for_incomplete_record(symbol_t* sym)
     type = sym->sym_type;
     assert(type);
     if(decl_class(type) != struct_decl)
-        return FALSE;
+        return false;
 
     if(sym->aliases)
-        return FALSE;
+        return false;
 
     if(!sym->sym_tags)
-        return TRUE;
+        return true;
 
     /* Here's the aforementioned mystery test. */
     /* TBD: Why is this the right test?? Is it? */
@@ -2149,7 +2149,7 @@ static void gen_array_types(typeq) sym_q* typeq;
 
     for(sym = typeq->qhead; sym; sym = sym->sym_gen_list)
     {
-        gen_array_t(sym, FALSE);
+        gen_array_t(sym, false);
     }
 }
 
@@ -2333,7 +2333,7 @@ int pass;
     }
     else
     {
-        return type_nameof(typ, FALSE, TRUE);
+        return type_nameof(typ, false, true);
     }
 }
 
@@ -2487,16 +2487,16 @@ static int multiple_params(params) symbol_t* params;
 static bool declaring_sym_in_spec(symbol_t* sym)
 {
     if(sym->is_declared_in_header)
-        return TRUE;
+        return true;
     if(sym->sym_scope >= 2)
-        return FALSE;
+        return false;
     if(is_static(sym))
-        return FALSE;
+        return false;
     if(sym->declare_in_spec)
-        return TRUE;
+        return true;
     if(export_from_c)
-        return TRUE;
-    return FALSE;
+        return true;
+    return false;
 }
 
 static void gen_vars(sym_q* vq, int import)
@@ -2602,7 +2602,7 @@ void gen_local_func(symbol_t* sym, int indent)
         /* TBD: error message */
     }
 
-    return_name = new_string(type_nameof(rtyp, FALSE, FALSE));
+    return_name = new_string(type_nameof(rtyp, false, false));
     putf(" return %s", return_name);
 
     put_string(" is");
@@ -2943,17 +2943,17 @@ static bool interfaces_c(symbol_t* sym)
     assert(sym->sym_ada_name != NULL);
 
     if(sym->has_initializer)
-        return FALSE;
+        return false;
 
     /* see extern.doc for explanation.  complicated. */
     if((sym->sym_kind == func_symbol)
        && (sym->has_initializer || sym->sym_type->type_next->is_inline))
-        return FALSE;
+        return false;
 
     if(sym->sym_kind == var_symbol)
     {
         if(sym->is_static)
-            return FALSE;
+            return false;
         typ = sym->sym_type;
         if((typ->type_kind == array_of) || (typ->type_kind == pointer_to))
         {
@@ -2961,9 +2961,9 @@ static bool interfaces_c(symbol_t* sym)
             typ = typ->type_next;
         }
         if((!sym->is_declared_in_header) && (!typ->is_extern))
-            return FALSE;
+            return false;
     }
-    return TRUE;
+    return true;
 }
 
 void interface_c(sym, indent) symbol_t* sym;
@@ -3105,8 +3105,8 @@ void gen_unchecked_conversion_func(symbol_t* sym, typeinfo_pt from_type, typeinf
 
     putf("function %s is new Ada.Unchecked_conversion\n", sym->sym_ada_name);
     indent_to(8);
-    putf(" (%s, ", type_nameof(from_type, FALSE, FALSE));
-    putf("%s);\n", type_nameof(to_type, FALSE, FALSE));
+    putf(" (%s, ", type_nameof(from_type, false, false));
+    putf("%s);\n", type_nameof(to_type, false, false));
     set_symbol_done(sym);
 }
 
@@ -3150,14 +3150,14 @@ static void gen_stdarg_concat_func(typeinfo_pt type)
         bool t_is_modular = (type->type_kind == int_type) && type->is_unsigned;
         bool t_is_float = (type->type_kind == float_type);
         putf("%>function \"&\" is new Stdarg.Concat(%s, %s, %s);\n", 4,
-             type_nameof(type, FALSE, FALSE), t_is_modular ? "True" : "False",
+             type_nameof(type, false, false), t_is_modular ? "True" : "False",
              t_is_float ? "True" : "False");
     }
 }
 
 static void gen_use_type_decl(typeinfo_pt type)
 {
-    putf("%>use type %s;\n", 4, type_nameof(type, FALSE, FALSE));
+    putf("%>use type %s;\n", 4, type_nameof(type, false, false));
 }
 
 static void gen_unit(unit_n ord)
@@ -3201,7 +3201,7 @@ static void gen_unit(unit_n ord)
     /* Include the <predef>.Ops package to get definitions
      * of operators (like "and") on C types.
      */
-    if(TRUE)
+    if(true)
     {
         /* TBD: we could implement "has_ops" on ord,
          * & use as a guard on generating this import.
@@ -3218,12 +3218,12 @@ static void gen_unit(unit_n ord)
 
     if(has_c_pointers(ord))
     {
-        putf("with %s;\n", generic_ptrs_pkg_name(FALSE));
+        putf("with %s;\n", generic_ptrs_pkg_name(false));
     }
 
     if(has_c_const_pointers(ord))
     {
-        putf("with %s;\n", generic_ptrs_pkg_name(TRUE));
+        putf("with %s;\n", generic_ptrs_pkg_name(true));
     }
 
     if(has_unchecked_conversion(ord))
@@ -3297,11 +3297,11 @@ static void gen_unit(unit_n ord)
     }
 
     gen_simple_types(&compilation[ord].simple_typeq);
-    gen_access_types(&compilation[ord].simple_ptr_typeq, FALSE);
+    gen_access_types(&compilation[ord].simple_ptr_typeq, false);
     gen_array_types(&compilation[ord].simple_array_typeq);
-    gen_record_incompletes(&compilation[ord].sort_typeq, FALSE);
-    gen_access_types(&compilation[ord].rec_ptr_typeq, FALSE);
-    gen_sorted_types(&compilation[ord].sort_typeq, FALSE);
+    gen_record_incompletes(&compilation[ord].sort_typeq, false);
+    gen_access_types(&compilation[ord].rec_ptr_typeq, false);
+    gen_sorted_types(&compilation[ord].sort_typeq, false);
     gen_macro_types(mlist, -1);
 
     /* Stdarg.Concat instantiations and "use type" declarations
@@ -3344,11 +3344,11 @@ static void gen_unit(unit_n ord)
         output_to_spec();
         putf("\nprivate\n");
 
-        gen_record_incompletes(&compilation[ord].sort_typeq, TRUE);
+        gen_record_incompletes(&compilation[ord].sort_typeq, true);
         gen_var_interface_pragmas(&compilation[ord].varq);
         gen_subp_interface_pragmas(&compilation[ord].funcq);
-        gen_sorted_types(&compilation[ord].sort_typeq, TRUE);
-        gen_access_types(&compilation[ord].rec_ptr_typeq, TRUE);
+        gen_sorted_types(&compilation[ord].sort_typeq, true);
+        gen_access_types(&compilation[ord].rec_ptr_typeq, true);
     }
 
     put_string_both("\nend ");
@@ -3375,7 +3375,7 @@ static bool dependencies_clear(symbol_t* sym)
     assert(sym != NULL);
     assert(sym->sym_type);
     if(sym->cleared)
-        return TRUE;
+        return true;
     return type_deps_clear(sym->sym_type, sym);
 }
 
@@ -3393,7 +3393,7 @@ static bool type_deps_clear(typeinfo_pt type, symbol_t* sym)
                  * been emitted by the time we get to the elements
                  * in the sort_typeq.
                  */
-                return TRUE;
+                return true;
             }
             if(tsym && equal_types(tsym->sym_type, type))
             {
@@ -3440,20 +3440,20 @@ static bool type_deps_clear(typeinfo_pt type, symbol_t* sym)
                 for(tag = sym->sym_tags; tag; tag = tag->sym_parse_list)
                 {
                     if(!dependencies_clear(tag))
-                        return FALSE;
+                        return false;
                 }
-                return TRUE;
+                return true;
             }
         }
 
         default:
-            return TRUE;
+            return true;
     }
 } /* type_deps_clear() */
 
 static bool typesort(sym_q* typeq)
 /* Enqueues the symbols in <typeq> so that later symbols
- * do not depend on earlier ones.  Returns TRUE if it
+ * do not depend on earlier ones.  Returns true if it
  * was possible to so order all the types.
  */
 {
@@ -3474,7 +3474,7 @@ static bool typesort(sym_q* typeq)
      */
     do
     {
-        changed = FALSE; /* set to TRUE if any syms are cleared
+        changed = false; /* set to true if any syms are cleared
                           * and enqueued on this pass.
                           */
         last = NULL;
@@ -3494,9 +3494,9 @@ static bool typesort(sym_q* typeq)
                     last->sym_gen_list = next;
                 }
                 s->sym_gen_list = NULL;
-                s->cleared = TRUE;
+                s->cleared = true;
                 enq(typeq, s);
-                changed = TRUE;
+                changed = true;
                 ;
             }
             else
@@ -3517,11 +3517,11 @@ static bool typesort(sym_q* typeq)
             s->sym_gen_list = NULL;
             enq(typeq, s);
         }
-        return FALSE;
+        return false;
     }
     else
     {
-        return TRUE;
+        return true;
     }
 }
 

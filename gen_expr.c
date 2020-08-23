@@ -288,9 +288,9 @@ void gen_expr_Binop_Assign(node_pt e, bool in_parens)
     node_kind_t kind = non_assign_op(e->node_kind);
     node_pt er = new_node(kind, el, e->node.binary.r);
 
-    gen_expr(el, FALSE);
+    gen_expr(el, false);
     put_string(" := ");
-    gen_expr(er, FALSE);
+    gen_expr(er, false);
 }
 
 void gen_expr_Binop_func(node_pt e, bool in_parens)
@@ -342,10 +342,10 @@ void gen_expr_Sizeof(node_pt e, bool in_parens)
 
     lparen(in_parens);
     put_string(sizeof_funcname);
-    lparen(TRUE);
-    gen_expr(e->node.unary, FALSE);
+    lparen(true);
+    gen_expr(e->node.unary, false);
     put_string("'Size");
-    rparen(TRUE);
+    rparen(true);
     rparen(in_parens);
 }
 
@@ -583,7 +583,7 @@ static void gen_forced_type(typeinfo_pt type, bool to_unsigned, node_pt e)
 }
 
 static bool dynamic_referent(node_pt e)
-/* Returns TRUE unless e is known to be statically allocated */
+/* Returns true unless e is known to be statically allocated */
 {
     switch(e->node_kind)
     {
@@ -593,12 +593,12 @@ static bool dynamic_referent(node_pt e)
             return dynamic_referent(e->node.binary.l);
         case _Macro_ID:
             /* all macro values are statically allocated */
-            return FALSE;
+            return false;
         case _Array_Index:
             return dynamic_referent(e->node.binary.l);
         default:
             /* TBD other cases can be resolved */
-            return TRUE;
+            return true;
     }
 }
 
@@ -615,7 +615,7 @@ void gen_expr_Type_Cast(node_pt e, bool in_parens)
         /* special-case construct used in initializing a
          * definite-length char array with a string literal
          */
-        print_string_value(er->node.str.form, type->type_info.array.elements, TRUE);
+        print_string_value(er->node.str.form, type->type_info.array.elements, true);
         return;
     }
 
@@ -692,21 +692,21 @@ void gen_expr_Not(node_pt e, bool in_parens)
     if(eSub->node_kind == _BoolTyp)
     {
         put_string("not ");
-        gen_expr(e->node.unary, FALSE);
+        gen_expr(e->node.unary, false);
     }
     else
     {
         assert(subtype != NULL);
         if(subtype->type_kind == pointer_to)
         {
-            gen_expr(e->node.unary, FALSE);
+            gen_expr(e->node.unary, false);
             put_string(" = null");
         }
         else
         {
             put_string(eq0_funcname);
             put_string("(");
-            gen_expr(e->node.unary, FALSE);
+            gen_expr(e->node.unary, false);
             put_string(")");
         }
     }

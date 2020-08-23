@@ -15,14 +15,14 @@ extern int Num_Errors;
 
 int enum_reps; /* Flag to force enum reps */
 int export_from_c; /* Flag to export funcs and vars from .c file */
-bool suppress_record_repspec = TRUE; /* Suppress record rep clauses */
+bool suppress_record_repspec = true; /* Suppress record rep clauses */
 int repspec_flag; /* Flag to force record rep clauses */
 int comment_size; /* Flag to force type size output */
-bool auto_package = TRUE; /* Flag to gen packages automatically */
+bool auto_package = true; /* Flag to gen packages automatically */
 int flag_unions;
-bool import_decls = FALSE; /* Import declarations from included headers */
+bool import_decls = false; /* Import declarations from included headers */
 int translate_comments; /* Attempt to retain C comments */
-bool macro_warnings = TRUE; /* Warn about untranslated macros */
+bool macro_warnings = true; /* Warn about untranslated macros */
 int map_files = 0; /* Map file cbind.map used to map unit names */
 int output_refs = 1; /* Output references from Ada back to C */
 
@@ -221,7 +221,7 @@ char* argv[];
                 case 'M':
                 {
                     extern bool do_const_macros;
-                    do_const_macros = FALSE;
+                    do_const_macros = false;
                     break;
                 }
                 case 'v':

@@ -60,17 +60,17 @@ bool added_decls(ctxt_pt ctxt)
 
 void reset_changed(ctxt_pt ctxt)
 {
-    ctxt->changed_pre = FALSE;
-    ctxt->changed_post = FALSE;
-    ctxt->added_decls = FALSE;
+    ctxt->changed_pre = false;
+    ctxt->changed_post = false;
+    ctxt->added_decls = false;
 }
 
 void clear_pre_and_post(ctxt_pt ctxt)
 {
     ctxt->pre_stmts = 0;
     ctxt->post_stmts = 0;
-    ctxt->changed_pre = FALSE;
-    ctxt->changed_post = FALSE;
+    ctxt->changed_pre = false;
+    ctxt->changed_post = false;
 }
 
 stmt_pt pre_stmts(ctxt_pt ctxt)
@@ -108,7 +108,7 @@ void append_pre(ctxt_pt ctxt, stmt_pt stmt)
     {
         ctxt->pre_stmts = new_stmt_list(stmt);
     }
-    ctxt->changed_pre = TRUE;
+    ctxt->changed_pre = true;
 }
 
 void append_post(ctxt_pt ctxt, stmt_pt stmt)
@@ -124,7 +124,7 @@ void append_post(ctxt_pt ctxt, stmt_pt stmt)
     {
         ctxt->post_stmts = new_stmt_list(stmt);
     }
-    ctxt->changed_post = TRUE;
+    ctxt->changed_post = true;
 }
 
 static void set_decls_scope(symbol_t* decls, scope_id_t scope)
@@ -164,7 +164,7 @@ void append_decls(ctxt_pt ctxt, symbol_t* decls)
         return;
     set_decls_scope(decls, ctxt->scope);
     ctxt->decls = concat_symbols(ctxt->decls, decls);
-    ctxt->added_decls = TRUE;
+    ctxt->added_decls = true;
 }
 
 void append_decl(ctxt_pt ctxt, symbol_t* decl)

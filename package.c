@@ -147,8 +147,8 @@ typeinfo_pt ptrs_type_for(typeinfo_pt pointer, ctxt_pt ctxt, file_pos_t pos)
 
 void gen_ptrs_pkg_def(ptrs_pkg_def_pt pkg, symbol_t* sym, int indent)
 {
-    char* element_type_name = new_string(type_nameof(pkg->element, FALSE, FALSE));
-    char* pointer_type_name = type_nameof(pkg->pointer, FALSE, FALSE);
+    char* element_type_name = new_string(type_nameof(pkg->element, false, false));
+    char* pointer_type_name = type_nameof(pkg->pointer, false, false);
     bool is_const_ptr = pkg->pointer->type_next->is_constant;
 
     putf("%>package %s is\n", indent, sym->sym_ada_name);

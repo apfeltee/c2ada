@@ -13,7 +13,7 @@ static PyObject* c2ada; /* Python module "C2ada" */
 static PyObject* the_data; /* Python "the" */
 static PyObject* the_sources; /* Python "the.source" */
 
-bool configured = FALSE; /* set by calling configure_project */
+bool configured = false; /* set by calling configure_project */
 
 void configure_project(char* filename)
 {
@@ -53,7 +53,7 @@ char** configured_reserved_ids(int* count_p)
     result[count] = 0;
     Py_DECREF(list);
 
-    configured = TRUE;
+    configured = true;
 
     return result;
 }
@@ -130,13 +130,13 @@ bool configured_sym_info(symbol_t* sym, typeinfo_pt type)
 
     source = file_source(pos_file(sym->sym_def));
     if(!source)
-        return FALSE;
+        return false;
 
     declObj = PyMapping_GetItemString(source->declsObj, sym->sym_ident->node.id.name);
     if(!declObj)
     {
         PyErr_Clear();
-        return FALSE;
+        return false;
     }
 
     /* return_type_is_void, bool */
@@ -188,7 +188,7 @@ bool configured_sym_info(symbol_t* sym, typeinfo_pt type)
             PyErr_Clear();
         }
     }
-    return TRUE;
+    return true;
 
 } /* configured_sym_info */
 

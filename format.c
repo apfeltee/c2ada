@@ -16,18 +16,18 @@ static int body_indentation = START_INDENT;
  * This flag is true if we're currently putting a string or char literal.
  * It's used to decide how to handle line breaks.
  */
-static bool in_text_literal = FALSE;
+static bool in_text_literal = false;
 
 /* This is a stronger form of literal quotation: unlike strings,
  * we'll NEVER want to split in one of these literals (floating
  * point literals are the motivating case.)
  */
-static bool in_literal = FALSE;
+static bool in_literal = false;
 
 /*
  * This flag is set if we're outputting a comment.
  */
-static bool in_comment = FALSE;
+static bool in_comment = false;
 
 /*
  * The maximum allowable width of an output line.  GNAT, for one, has
@@ -68,7 +68,7 @@ void reset_output_line()
 static bool allow_break_after(char c)
 {
     if(isalnum(c))
-        return FALSE;
+        return false;
     switch(c)
     {
         case '_': /* constituent of identifiers */
@@ -79,9 +79,9 @@ static bool allow_break_after(char c)
         case '>': /*  >=, >>     */
         case '<': /*  <=, <<, <> */
         case '*': /*  **         */
-            return FALSE;
+            return false;
         default:
-            return TRUE;
+            return true;
     }
 }
 
@@ -93,7 +93,7 @@ static void put(char c)
     {
         line_num++;
         indentation = START_INDENT;
-        in_comment = FALSE;
+        in_comment = false;
     }
     else
     {
@@ -193,23 +193,23 @@ void putf(char* s, ...)
                     put('%');
                     break;
                 case '{': /* start of string or char literal */
-                    in_text_literal = TRUE;
+                    in_text_literal = true;
                     break;
                 case '}': /* end of string or char literal */
-                    in_text_literal = FALSE;
+                    in_text_literal = false;
                     break;
                 case '-': /* start of comment; the format string */
                     /* will look like ...%--... */
                     if(indentation > max_line_width)
                         put('\n');
-                    in_comment = TRUE;
+                    in_comment = true;
                     put('-');
                     break;
                 case '[': /* start of unbreakable literal */
-                    in_literal = TRUE;
+                    in_literal = true;
                     break;
                 case ']': /* end of unbreakable literal */
-                    in_literal = FALSE;
+                    in_literal = false;
                     break;
                 case 0:
                 default:

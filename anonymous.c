@@ -115,14 +115,14 @@ static void define_anon_type(typeinfo_pt type, char* id, char* ada_name, bool ge
     symbol_t* basetype;
 
     basetype = new_sym();
-    basetype->intrinsic = TRUE;
+    basetype->intrinsic = true;
     basetype->sym_kind = type_symbol;
     basetype->sym_type = type;
     basetype->sym_ident = new_node(_Ident, id);
     basetype->sym_ada_name = ada_name;
     basetype->gened = gened;
 
-    type->is_anonymous = TRUE;
+    type->is_anonymous = true;
     type->type_base = basetype;
     store_anonymous_type(type);
 }
@@ -141,37 +141,37 @@ static typeinfo_pt add_const_pointer_type(typeinfo_pt typ)
  */
 void init_anonymous_types(void)
 {
-    static bool initialized = FALSE;
+    static bool initialized = false;
     typeinfo_t* typ;
 
     if(initialized)
         return;
-    initialized = TRUE;
+    initialized = true;
 
     /* (char *) */
     typ = add_pointer_type(typeof_char());
-    define_anon_type(typ, "%% builtin (char*) %%", predef_name_copy("charp"), TRUE);
+    define_anon_type(typ, "%% builtin (char*) %%", predef_name_copy("charp"), true);
 
     /* (const char *) */
     typ = add_const_pointer_type(typeof_char());
-    define_anon_type(typ, "%% (const char *) %%", predef_name_copy("const_charp"), TRUE);
+    define_anon_type(typ, "%% (const char *) %%", predef_name_copy("const_charp"), true);
 
     /* (void *) */
     define_anon_type(add_pointer_type(typeof_void()), "%% builtin (void*) %%",
-                     "System.Address", TRUE);
+                     "System.Address", true);
 
     /* (const void *) */
     define_anon_type(add_const_pointer_type(typeof_void()),
-                     "%% builtin (const void*) %%", "System.Address", TRUE);
+                     "%% builtin (const void*) %%", "System.Address", true);
 
     /* void (*)(void) */
     typ = add_pointer_type(add_function_type(typeof_void()));
-    define_anon_type(typ, "%% void (*)() %%", predef_name_copy("function_pointer"), TRUE);
+    define_anon_type(typ, "%% void (*)() %%", predef_name_copy("function_pointer"), true);
     anonymous_function_pointer = typ->type_base;
 
     /* char[] */
     typ = typeof_char_array();
-    define_anon_type(typ, "%% char[] *%%", predef_name_copy("char_array"), TRUE);
+    define_anon_type(typ, "%% char[] *%%", predef_name_copy("char_array"), true);
 }
 
 /*
@@ -186,7 +186,7 @@ symbol_t* get_anonymous_type(typeinfo_pt typ)
     ident_case_t icase;
     char buf[512];
     bool type_is_func_ptr = is_function_pointer(typ);
-    bool private = FALSE;
+    bool private = false;
 
     assert(typ != NULL);
 
@@ -266,7 +266,7 @@ symbol_t* get_anonymous_type(typeinfo_pt typ)
         }
         else
         {
-            strcpy(buf, tail(type_nameof(rtyp, FALSE, FALSE)));
+            strcpy(buf, tail(type_nameof(rtyp, false, false)));
         }
 
         strcat(buf, rtyp->is_constant ? "_const_access" : "_access");

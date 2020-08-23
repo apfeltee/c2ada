@@ -128,7 +128,7 @@ static bool valid_unit(unit_n unit)
 void set_ellipsis(unit_n unit)
 {
     assert(valid_unit(unit));
-    table[unit]->unit_has_ellipsis = TRUE;
+    table[unit]->unit_has_ellipsis = true;
 }
 
 bool has_ellipsis(unit_n unit)
@@ -140,7 +140,7 @@ bool has_ellipsis(unit_n unit)
 void set_unit_has_private_part(unit_n unit)
 {
     assert(valid_unit(unit));
-    table[unit]->unit_has_private_part = TRUE;
+    table[unit]->unit_has_private_part = true;
 }
 
 bool unit_has_private_part(unit_n unit)
@@ -152,7 +152,7 @@ bool unit_has_private_part(unit_n unit)
 void set_unchecked_conversion(unit_n unit, bool in_spec)
 {
     assert(valid_unit(unit));
-    table[unit]->unit_has_unchecked_conversion = TRUE;
+    table[unit]->unit_has_unchecked_conversion = true;
     table[unit]->unchecked_conversions_in_spec = in_spec;
 }
 
@@ -167,19 +167,19 @@ bool unchecked_conversions_to_spec(unit_n unit)
     assert(valid_unit(unit));
     return table[unit]->unchecked_conversions_in_spec
            || configured_source_flag(table[unit]->src_path,
-                                     "unchecked_conversions_to_spec", FALSE);
+                                     "unchecked_conversions_to_spec", false);
 }
 
 void with_c_pointers(unit_n unit)
 {
     assert(valid_unit(unit));
-    table[unit]->unit_with_c_pointers = TRUE;
+    table[unit]->unit_with_c_pointers = true;
 }
 
 void with_c_const_pointers(unit_n unit)
 {
     assert(valid_unit(unit));
-    table[unit]->unit_with_c_const_pointers = TRUE;
+    table[unit]->unit_with_c_const_pointers = true;
 }
 
 bool has_c_pointers(unit_n unit)
@@ -412,7 +412,7 @@ char* iname;
 
 static void initialize_unit(unit_n ord, file_id_t file)
 {
-    static bool first_time = TRUE;
+    static bool first_time = true;
     static unit_map* umap = NULL;
 
     char buf[PATH_MAX];
@@ -429,7 +429,7 @@ static void initialize_unit(unit_n ord, file_id_t file)
     {
         if(map_files)
             umap = decode_unit_map();
-        first_time = FALSE;
+        first_time = false;
     }
 
     unit = NEW(unit_t);
@@ -507,7 +507,7 @@ static void initialize_unit(unit_n ord, file_id_t file)
         unit->unit_body_path = this_unit->body_name;
     }
 
-    unit->initialized = TRUE;
+    unit->initialized = true;
 
     table[ord] = unit;
 }
@@ -592,7 +592,7 @@ static char* bindings_dir()
 }
 
 bool set_unit(unit_n ord)
-/* returns TRUE only if output file can't be opened */
+/* returns true only if output file can't be opened */
 {
     unit_t* unit;
     static int first_time = 1;
@@ -718,7 +718,7 @@ char* cur_unit_path()
     return unit->unit_path;
 }
 
-static bool program_has_const_string = FALSE;
+static bool program_has_const_string = false;
 
 void set_cur_unit_has_const_string(void)
 {
@@ -732,12 +732,12 @@ void set_cur_unit_has_const_string(void)
         {
             unit = table[ord];
             assert(unit != NULL);
-            unit->unit_has_const_string = TRUE;
+            unit->unit_has_const_string = true;
         }
     }
     else
     {
-        program_has_const_string = TRUE;
+        program_has_const_string = true;
     }
 }
 
@@ -885,7 +885,7 @@ void set_cur_unit_header_comment(comment_block_pt comment)
 {
     unit_t* cu = table[cur_unit];
     cu->header_comment = comment;
-    cu->header_comment_set = TRUE;
+    cu->header_comment_set = true;
 }
 
 comment_block_pt cur_unit_trailer_comment(void)
