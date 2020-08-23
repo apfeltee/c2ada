@@ -7,33 +7,27 @@
 #include "stab.h"
 
 symbol_pt
-new_local_func( typeinfo_pt return_type,
-	        symbol_pt   decls,
-	        stmt_pt     stmts,
-	        file_pos_t  pos,
-	        scope_id_t  scope)
+new_local_func(typeinfo_pt return_type, symbol_pt decls, stmt_pt stmts, file_pos_t pos, scope_id_t scope)
 {
     set_current_scope(scope);
     {
-	stmt_pt body = new_stmt_Compound( pos, decls, stmts );
-	node_pt func_name = new_pos_node(pos,_Ident, "test_condition"); /*TBD*/
-	node_pt func_declarator = new_pos_node(pos, _Func_Call, func_name , 0);
-	symbol_pt func_spec     = function_spec(return_type,
-						func_declarator,
-						scope_level(scope));
-	symbol_pt func_def      = new_func(func_spec, body);
+        stmt_pt body = new_stmt_Compound(pos, decls, stmts);
+        node_pt func_name = new_pos_node(pos, _Ident, "test_condition"); /*TBD*/
+        node_pt func_declarator = new_pos_node(pos, _Func_Call, func_name, 0);
+        symbol_pt func_spec
+        = function_spec(return_type, func_declarator, scope_level(scope));
+        symbol_pt func_def = new_func(func_spec, body);
 
-	func_spec->sym_def = pos;
-	func_def->sym_def  = pos;
+        func_spec->sym_def = pos;
+        func_def->sym_def = pos;
 
-	/* TBD: mark the function specially as local? */
+        /* TBD: mark the function specially as local? */
 
-	return func_def;
+        return func_def;
     }
 }
 
-stmt_pt
-return_bool_stmt( boolean value, file_pos_t pos )
+stmt_pt return_bool_stmt(boolean value, file_pos_t pos)
 {
     /* TBD: synthesize booleans somehow */
     node_pt retval = new_node(_Int_Number, value);

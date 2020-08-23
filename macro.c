@@ -17,253 +17,252 @@
 extern comment_block_pt fetch_comment_block(void);
 
 #undef NULL
-#define NULL	0
+#define NULL 0
 
-#ifndef MACRO_TABLE_SIZE		/* must be a power of 2 */
-#define MACRO_TABLE_SIZE		512
+#ifndef MACRO_TABLE_SIZE /* must be a power of 2 */
+    #define MACRO_TABLE_SIZE 512
 #endif
 
-macro_t *macro_list_head;
-static macro_t *macro_list_tail;
-static macro_t *hash_table[MACRO_TABLE_SIZE];
+macro_t* macro_list_head;
+static macro_t* macro_list_tail;
+static macro_t* hash_table[MACRO_TABLE_SIZE];
 
-struct autodefs {
-	char *name;
-	char *value;
-} deftab[] = {
-	{"__ANSI_CPP__","1"},
-	{"_LANGUAGE_C","1"},
-	{"LANGUAGE_C","1"},
-	{"__STDC__","1"},
+struct autodefs
+{
+    char* name;
+    char* value;
+} deftab[] = { { "__ANSI_CPP__", "1" },
+               { "_LANGUAGE_C", "1" },
+               { "LANGUAGE_C", "1" },
+               { "__STDC__", "1" },
 
 #ifdef _IBMR2
-	{"_IBMR2","1"},
+               { "_IBMR2", "1" },
 #endif
 #ifdef _AIX
-	{"_AIX","1"},
+               { "_AIX", "1" },
 #endif
 #ifdef _AIX32
-	{"_AIX32","1"},
+               { "_AIX32", "1" },
 #endif
 #ifdef host_mips
-	{"host_mips","1"},
+               { "host_mips", "1" },
 #endif
 #ifdef mips
-	{"mips","1"},
+               { "mips", "1" },
 #endif
 #ifdef MIPSEB
-	{"MIPSEB","1"},
+               { "MIPSEB", "1" },
 #endif
 #ifdef sgi
-	{"sgi","1"},
+               { "sgi", "1" },
 #endif
 #ifdef sun
-	{"sun","1"},
+               { "sun", "1" },
 #endif
 #ifdef __sun
-	{"__sun","1"},
+               { "__sun", "1" },
 #endif
 #ifdef sparc
-	{"sparc","1"},
+               { "sparc", "1" },
 #endif
 #ifdef __sparc
-	{"__sparc","1"},
+               { "__sparc", "1" },
 #endif
 #ifdef SVR3
-	{"SVR3","1"},
+               { "SVR3", "1" },
 #endif
 #ifndef __SVR4
-	{"__SVR4", "1"},
+               { "__SVR4", "1" },
 #endif
 #ifdef SYSTYPE_SYSV
-	{"SYSTYPE_SYSV","1"},
+               { "SYSTYPE_SYSV", "1" },
 #endif
 #ifdef _MIPSEB
-	{"_MIPSEB","1"},
+               { "_MIPSEB", "1" },
 #endif
 #ifdef _POSIX_SOURCE
-	{"_POSIX_SOURCE","1"},
+               { "_POSIX_SOURCE", "1" },
 #endif
 #ifdef _SYSTYPE_SYSV
-	{"_SYSTYPE_SYSV","1"},
+               { "_SYSTYPE_SYSV", "1" },
 #endif
 #ifdef __EXTENSIONS__
-	{"__EXTENSIONS__","1"},
+               { "__EXTENSIONS__", "1" },
 #endif
 #ifdef __host_mips
-	{"__host_mips","1"},
+               { "__host_mips", "1" },
 #endif
 #ifdef __mips
-	{"__mips","1"},
+               { "__mips", "1" },
 #endif
 #ifdef __sgi
-	{"__sgi","1"},
+               { "__sgi", "1" },
 #endif
 #ifdef __SVR3
-	{"__SVR3","1"},
+               { "__SVR3", "1" },
 #endif
 #ifdef unix
-	{"unix", "1"},
+               { "unix", "1" },
 #endif
 #ifdef __unix
-	{"__unix","1"},
+               { "__unix", "1" },
 #endif
-	{NULL, NULL}
-};
+               { NULL, NULL } };
 
-static void
-macro_add_to_list(m)
-	macro_t *m;
+static void macro_add_to_list(m) macro_t* m;
 {
-	if (macro_list_head) {
-		macro_list_tail->macro_next = m;
-	}
-	else {
-		macro_list_head = m;
-	}
-	macro_list_tail = m;
+    if(macro_list_head)
+    {
+        macro_list_tail->macro_next = m;
+    }
+    else
+    {
+        macro_list_head = m;
+    }
+    macro_list_tail = m;
 }
 
-static void
-macro_add_to_table(m)
-	macro_t *m;
+static void macro_add_to_table(m) macro_t* m;
 {
-	int index;
+    int index;
 
-	m->macro_hash = common_hash(m->macro_name);
+    m->macro_hash = common_hash(m->macro_name);
 
-	index = m->macro_hash & (MACRO_TABLE_SIZE - 1);
+    index = m->macro_hash & (MACRO_TABLE_SIZE - 1);
 
-	m->macro_hash_link = hash_table[index];
-	hash_table[index] = m;
+    m->macro_hash_link = hash_table[index];
+    hash_table[index] = m;
 }
 
-void
-macro_undef(name)
-	char *name;
+void macro_undef(name) char* name;
 {
-	macro_t *m, *last;
-	hash_t hash;
-	int index;
+    macro_t *m, *last;
+    hash_t hash;
+    int index;
 
-	assert(name != NULL);
+    assert(name != NULL);
 
-	hash = common_hash(name);
-	index = hash & (MACRO_TABLE_SIZE - 1);
+    hash = common_hash(name);
+    index = hash & (MACRO_TABLE_SIZE - 1);
 
-	last = NULL;
+    last = NULL;
 
-	for (m = hash_table[index]; m; m = m->macro_hash_link) {
-		if (m->macro_hash == hash && !strcmp(m->macro_name, name)) {
-			if (last == NULL) {
-				hash_table[index] = m->macro_hash_link;
-			}
-			else {
-				last->macro_hash_link = m->macro_hash_link;
-			}
-		}
-		else {
-			last = m;
-		}
-	}
+    for(m = hash_table[index]; m; m = m->macro_hash_link)
+    {
+        if(m->macro_hash == hash && !strcmp(m->macro_name, name))
+        {
+            if(last == NULL)
+            {
+                hash_table[index] = m->macro_hash_link;
+            }
+            else
+            {
+                last->macro_hash_link = m->macro_hash_link;
+            }
+        }
+        else
+        {
+            last = m;
+        }
+    }
 }
 
-void
-macro_def(name, body, len, params, formals, definition, eol_comment)
-	char *name, *body;
-	int len, params;
-	char **formals;
-	file_pos_t definition;
-        char * eol_comment;
+void macro_def(name, body, len, params, formals, definition, eol_comment) char *name, *body;
+int len, params;
+char** formals;
+file_pos_t definition;
+char* eol_comment;
 {
-	macro_t *m;
+    macro_t* m;
 
-	assert(name != NULL);
+    assert(name != NULL);
 
-	m = (macro_t*) allocate(sizeof(macro_t));
+    m = (macro_t*)allocate(sizeof(macro_t));
 
-	m->macro_name = name;
-	m->macro_body = body;
-	m->macro_body_len = len;
-	m->macro_params = params;
-	m->macro_definition = definition;
-	m->macro_param_vec = formals;
-	m->macro_func = NULL;
-	m->macro_declared_in_header = current_unit_is_header;
-	m->comment = fetch_comment_block();
-	m->eol_comment = eol_comment;
+    m->macro_name = name;
+    m->macro_body = body;
+    m->macro_body_len = len;
+    m->macro_params = params;
+    m->macro_definition = definition;
+    m->macro_param_vec = formals;
+    m->macro_func = NULL;
+    m->macro_declared_in_header = current_unit_is_header;
+    m->comment = fetch_comment_block();
+    m->eol_comment = eol_comment;
 
-	if (definition != 0) {
-		macro_add_to_list(m);
-	}
+    if(definition != 0)
+    {
+        macro_add_to_list(m);
+    }
 
-	macro_add_to_table(m);
+    macro_add_to_table(m);
 }
 
-macro_t*
-macro_find(name)
-	char *name;
+macro_t* macro_find(name) char* name;
 {
-	macro_t *m;
-	hash_t hash;
-	int index;
+    macro_t* m;
+    hash_t hash;
+    int index;
 
-	hash = common_hash(name);
-	index = hash & (MACRO_TABLE_SIZE - 1);
+    hash = common_hash(name);
+    index = hash & (MACRO_TABLE_SIZE - 1);
 
-	for (m = hash_table[index]; m; m = m->macro_hash_link) {
-		if (m->macro_hash == hash && !strcmp(m->macro_name, name)) {
-			return m;
-		}
-	}
+    for(m = hash_table[index]; m; m = m->macro_hash_link)
+    {
+        if(m->macro_hash == hash && !strcmp(m->macro_name, name))
+        {
+            return m;
+        }
+    }
 
-	return NULL;
+    return NULL;
 }
 
-void
-macro_init(force)
-	int force;
+void macro_init(force) int force;
 {
-	static int macro_initialized = 0;
-	macro_t *m;
-	int i;
+    static int macro_initialized = 0;
+    macro_t* m;
+    int i;
 
-	if (macro_initialized) {
-		if (!force) return;
-		memset(&hash_table, 0, sizeof(hash_table));
-		macro_list_head = NULL;
-		macro_list_tail = NULL;
-	}
+    if(macro_initialized)
+    {
+        if(!force)
+            return;
+        memset(&hash_table, 0, sizeof(hash_table));
+        macro_list_head = NULL;
+        macro_list_tail = NULL;
+    }
 
-	macro_initialized = 1;
+    macro_initialized = 1;
 
-	m = (macro_t*) allocate(sizeof(macro_t));
-	m->macro_name = "__FILE__";
-	m->macro_params = BUILTIN_FILE;
-	macro_add_to_table(m);
+    m = (macro_t*)allocate(sizeof(macro_t));
+    m->macro_name = "__FILE__";
+    m->macro_params = BUILTIN_FILE;
+    macro_add_to_table(m);
 
-	m = (macro_t*) allocate(sizeof(macro_t));
-	m->macro_name = "__LINE__";
-	m->macro_params = BUILTIN_LINE;
-	macro_add_to_table(m);
+    m = (macro_t*)allocate(sizeof(macro_t));
+    m->macro_name = "__LINE__";
+    m->macro_params = BUILTIN_LINE;
+    macro_add_to_table(m);
 
-	for (i = 0; deftab[i].name != NULL; i++) {
-		macro_def(deftab[i].name, deftab[i].value,
-			  strlen(deftab[i].value), -1, NULL, 0, 0);
-	}
+    for(i = 0; deftab[i].name != NULL; i++)
+    {
+        macro_def(deftab[i].name, deftab[i].value, strlen(deftab[i].value), -1,
+                  NULL, 0, 0);
+    }
 }
 
-void
-cpp_show_predefines()
+void cpp_show_predefines()
 {
-	int i;
+    int i;
 
-	puts("__FILE__\n__LINE__");
+    puts("__FILE__\n__LINE__");
 
-	for (i = 0; deftab[i].name != NULL; i++) {
-		printf("%s\t%s\n", deftab[i].name,
-			   (deftab[i].value) ? deftab[i].value : "");
-	}
+    for(i = 0; deftab[i].name != NULL; i++)
+    {
+        printf("%s\t%s\n", deftab[i].name, (deftab[i].value) ? deftab[i].value : "");
+    }
 }
 
 #if 0

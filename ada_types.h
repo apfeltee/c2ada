@@ -4,4 +4,4 @@
 
 #include "boolean.h"
 
-extern boolean same_ada_type( typeinfo_pt t1, typeinfo_pt t2);
+extern boolean same_ada_type(typeinfo_pt t1, typeinfo_pt t2);

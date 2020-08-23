@@ -16,9 +16,9 @@ typedef double host_float_t;
  */
 
 #ifdef aix
-#define C_VAR_PREFIX	"."
+    #define C_VAR_PREFIX "."
 #else
-#define C_VAR_PREFIX	"_"
+    #define C_VAR_PREFIX "_"
 #endif
 
 /*
@@ -26,16 +26,16 @@ typedef double host_float_t;
  */
 
 #ifdef aix
-#define C_SUBP_PREFIX	"."
+    #define C_SUBP_PREFIX "."
 #else
-#define C_SUBP_PREFIX	"_"
+    #define C_SUBP_PREFIX "_"
 #endif
 
 /*
  * Assume enum == int.  If this is not true you should
  * ifdef for your system and define it as in hostinfo.h.
  */
-#define SIZEOF_ENUM		SIZEOF_INT
-#define ALIGNOF_ENUM	ALIGNOF_INT
+#define SIZEOF_ENUM SIZEOF_INT
+#define ALIGNOF_ENUM ALIGNOF_INT
 
 #endif /* _H_HOST_ */

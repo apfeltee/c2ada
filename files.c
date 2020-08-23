@@ -8,16 +8,15 @@
 #include "hostinfo.h"
 #include "files.h"
 
-
 #ifdef HAS_MMAP
-#include <sys/mman.h>
+    #include <sys/mman.h>
 #else
-#include <unistd.h>
-#include <malloc.h>
+    #include <unistd.h>
+    #include <malloc.h>
 #endif
 
 #undef NULL
-#define NULL	0
+#define NULL 0
 
 /* This module manages the correspondence between file pathnames and
  * an internal numbering of unique files, as represented by the
@@ -34,56 +33,49 @@
  * is the next available free <file_id_t>.
  */
 
-static char *fnames[MAX_UNIQ_FNAMES];
+static char* fnames[MAX_UNIQ_FNAMES];
 static file_id_t findex;
 
-#define FILE_ORD(x)		((x) >> LINE_NUMBER_BITS)
+#define FILE_ORD(x) ((x) >> LINE_NUMBER_BITS)
 
-file_id_t
-pos_file( file_pos_t pos )
+file_id_t pos_file(file_pos_t pos)
 {
     return FILE_ORD(pos);
 }
 
-line_nt
-pos_line(file_pos_t pos)
+line_nt pos_line(file_pos_t pos)
 {
     return line_number(pos);
 }
 
-static file_pos_t
-file_line_pos( file_id_t f, int line)
+static file_pos_t file_line_pos(file_id_t f, int line)
 {
     return (((long)f) << LINE_NUMBER_BITS) | line;
 }
 
-
-int
-num_files()
+int num_files()
 {
     return findex;
 }
 
-char*
-file_name_from_ord(file_id_t ord)
+char* file_name_from_ord(file_id_t ord)
 {
     return fnames[ord];
 }
 
-char *
-file_name( file_pos_t pos )
+char* file_name(file_pos_t pos)
 {
     return fnames[FILE_ORD(pos)];
 }
 
-file_pos_t
-add_file( char * path )
+file_pos_t add_file(char* path)
 {
     file_pos_t i;
-    file_id_t  n;
+    file_id_t n;
 
-    if ((i = find_file(path)) != -1) {
-	return i;
+    if((i = find_file(path)) != -1)
+    {
+        return i;
     }
 
     assert(findex < MAX_UNIQ_FNAMES);
@@ -91,120 +83,113 @@ add_file( char * path )
     n = findex++;
     fnames[n] = path;
 
-    return file_line_pos( n, 1 );
+    return file_line_pos(n, 1);
 }
 
-file_pos_t
-set_file_pos(char * path, int line)
+file_pos_t set_file_pos(char* path, int line)
 {
     file_pos_t pos;
 
     pos = add_file(path);
-    return file_line_pos( pos_file(pos), line );
+    return file_line_pos(pos_file(pos), line);
 }
 
 /* return 1 if strings not equal, 0 if equal */
-int
-compare_path(char * s1, char * s2)
+int compare_path(char* s1, char* s2)
 {
     char c1, c2;
 
     /* compare paths but treat // the same as / */
-    while (1) {
-	c1 = *s1++;
-	c2 = *s2++;
-	if (c1 != c2)
-	    return 1;
-	if (c1 == '\0')
-	    return (c2 != 0);
-	if (c2 == '\0')
-	    return 1;
-	if (c1 == '/')
-	    while (*s1 == '/')
-		s1++;
-	if (c2 == '/')
-	    while (*s2 == '/')
-		s2++;
+    while(1)
+    {
+        c1 = *s1++;
+        c2 = *s2++;
+        if(c1 != c2)
+            return 1;
+        if(c1 == '\0')
+            return (c2 != 0);
+        if(c2 == '\0')
+            return 1;
+        if(c1 == '/')
+            while(*s1 == '/')
+                s1++;
+        if(c2 == '/')
+            while(*s2 == '/')
+                s2++;
     }
 }
 
-file_pos_t
-find_file(char * path)
-    /*
-     * Search for <path> in the fnames list;
-     * if found, return pos corresponding to file's first line;
-     * otherwise return -1.
-     */
+file_pos_t find_file(char* path)
+/*
+ * Search for <path> in the fnames list;
+ * if found, return pos corresponding to file's first line;
+ * otherwise return -1.
+ */
 {
     file_id_t i;
 
-    for (i = 0; i < findex; i++) {
-	if (!compare_path(fnames[i], path)) {
-	    return file_line_pos( i, 1 );
-	}
+    for(i = 0; i < findex; i++)
+    {
+        if(!compare_path(fnames[i], path))
+        {
+            return file_line_pos(i, 1);
+        }
     }
 
     return -1;
 }
 
-size_t
-sizeof_file(int fd)
+size_t sizeof_file(int fd)
 {
     struct stat stat_buf;
 
-    if (fstat(fd, &stat_buf) == -1) {
-	return -1;
+    if(fstat(fd, &stat_buf) == -1)
+    {
+        return -1;
     }
 
     return stat_buf.st_size;
 }
 
-#ifdef HAS_MMAP			/* Use Unix mmap() and munmap() */
-void *
-map_file(int fd, size_t fsize)
+#ifdef HAS_MMAP /* Use Unix mmap() and munmap() */
+void* map_file(int fd, size_t fsize)
 {
     return mmap(0, fsize, PROT_READ, MAP_PRIVATE, fd, 0);
 }
 
-int
-unmap_file(void * addr, size_t len)
+int unmap_file(void* addr, size_t len)
 {
     return munmap(addr, (int)len);
 }
 
-#else	/* This system doesn't support mmap() and munmap() */
+#else /* This system doesn't support mmap() and munmap() */
 
-void *
-map_file(fd, fsize)
-	int fd;
-	size_t fsize;
+void* map_file(fd, fsize) int fd;
+size_t fsize;
 {
-	char *addr;
-	int len;
+    char* addr;
+    int len;
 
-	addr = (char*) malloc(fsize);
-	assert(addr != NULL);
+    addr = (char*)malloc(fsize);
+    assert(addr != NULL);
 
-	len = read(fd, addr, (unsigned) fsize);
-	assert(len == (int)fsize);
+    len = read(fd, addr, (unsigned)fsize);
+    assert(len == (int)fsize);
 
-	return addr;
+    return addr;
 }
 
-int
-unmap_file(addr, len)
-	void *addr;
-	size_t len;
+int unmap_file(addr, len) void* addr;
+size_t len;
 {
-	free(addr);
+    free(addr);
 }
 
 #endif
-
+
 /* convenience functions for source-specific warning messages */
 
-void
-error_at( file_pos_t pos, char * fmt, ...)
+void error_at(file_pos_t pos, char* fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -212,8 +197,7 @@ error_at( file_pos_t pos, char * fmt, ...)
     va_end(ap);
 }
 
-void
-warning_at( file_pos_t pos, char * fmt, ...)
+void warning_at(file_pos_t pos, char* fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -221,8 +205,7 @@ warning_at( file_pos_t pos, char * fmt, ...)
     va_end(ap);
 }
 
-void
-inform_at ( file_pos_t pos, char * fmt, ...)
+void inform_at(file_pos_t pos, char* fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);

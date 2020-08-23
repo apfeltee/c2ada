@@ -2,10 +2,10 @@
 #define _H_FORMAT_
 
 #undef START_INDENT
-#define START_INDENT	0
+#define START_INDENT 0
 
 #ifndef COMMENT_POS
-#define COMMENT_POS		64
+    #define COMMENT_POS 64
 #endif
 
 extern int output_line(void);
@@ -18,6 +18,6 @@ extern void put_string(char*);
 extern void put_char(int);
 extern int cur_indent(void);
 
-extern void putf(char*,...);
+extern void putf(char*, ...);
 
 #endif /* _H_FORMAT_ */

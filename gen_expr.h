@@ -7,8 +7,8 @@
 #include "boolean.h"
 #include "il.h"
 
-extern void gen_expr( node_pt e, boolean in_parens );
+extern void gen_expr(node_pt e, boolean in_parens);
 
-extern char* null_pointer_value_name( typeinfo_pt type );
+extern char* null_pointer_value_name(typeinfo_pt type);
 
 #endif /* _H_GEN_EXPR_ */

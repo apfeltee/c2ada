@@ -8,13 +8,9 @@
 #include "il.h"
 #include "stmt.h"
 
-extern stmt_pt return_bool_stmt(boolean value, file_pos_t pos );
+extern stmt_pt return_bool_stmt(boolean value, file_pos_t pos);
 
-extern symbol_pt new_local_func(typeinfo_pt return_type,
-				symbol_pt   decls,
-				stmt_pt     stmts,
-				file_pos_t  pos,
-				scope_id_t  scope);
-
+extern symbol_pt
+new_local_func(typeinfo_pt return_type, symbol_pt decls, stmt_pt stmts, file_pos_t pos, scope_id_t scope);
 
 #endif

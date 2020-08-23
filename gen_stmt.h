@@ -6,7 +6,6 @@
 
 #include "stmt.h"
 
-extern void gen_stmt( stmt_pt s, int ident );
-
+extern void gen_stmt(stmt_pt s, int ident);
 
 #endif
