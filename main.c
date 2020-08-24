@@ -32,7 +32,7 @@ int ada_version = 1995;
 extern void yylex_init(void);
 extern void yyparse(void);
 
-#define streq(s1, s2) (!strcmp(s1, s2))
+#define streq(s1, s2) (strcmp((s1), (s2)) == 0)
 
 static void show_flag(char* flag, char* explanation)
 {
@@ -46,7 +46,7 @@ static void show_flag(char* flag, char* explanation)
     }
 }
 
-static int usage(prog) char* prog;
+static int usage(char* prog)
 {
     fputs("Illegal invocation\n\n", stderr);
     fprintf(stderr, "Usage: %s [flags] input files\n", prog);
@@ -80,29 +80,25 @@ static int usage(prog) char* prog;
     return 1;
 }
 
-static void do_define(name) char* name;
+static void do_define(const char* name)
 {
     char* val;
-
     if(name[0] == 0)
+    {
         return;
-
+    }
     val = strchr(name, '=');
-
     if(val == NULL)
     {
         macro_def(name, "1", 1, -1, NULL, 0, NULL);
         return;
     }
-
     *val = '\0';
     val++;
-
     macro_def(name, val, strlen(val), -1, NULL, 0, NULL);
 }
 
-int main(argc, argv) int argc;
-char* argv[];
+int main(int argc, char* argv[])
 {
     extern void gen();
 

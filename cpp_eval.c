@@ -13,10 +13,7 @@
 
 /* #define MAKE_FAIL(x)	    (x).eval_result_kind = eval_failed */
 #define MAKE_FAIL(x) make_fail(&x)
-static void make_fail(cpp_eval_result_t* m)
-{
-    m->eval_result_kind = eval_failed;
-}
+
 #define MAKE_INT(x, v, b)                \
     {                                    \
         (x).eval_result_kind = eval_int; \
@@ -70,7 +67,12 @@ typedef struct
     tokclass_t nexttok;
 } cpp_eval_state_t, *cpp_eval_state_pt;
 
-static int promote(l, r) tokval_t *l, *r;
+static void make_fail(cpp_eval_result_t* m)
+{
+    m->eval_result_kind = eval_failed;
+}
+
+static int promote(tokval_t* l, tokval_t* r)
 {
     switch(l->eval_result_kind)
     {
@@ -609,7 +611,7 @@ static int advance(cpp_eval_state_pt s)
             break;
         }
 
-        s->nexttok = s->c;
+        s->nexttok = (tokclass_t)(s->c);
         s->c = getc(s);
 
         switch(s->nexttok)
@@ -706,7 +708,7 @@ static int expect(int tok, cpp_eval_state_pt s)
     return 1;
 }
 
-static tokval_t eval();
+static tokval_t eval(cpp_eval_state_pt s);
 
 static typeinfo_pt ctype(cpp_eval_state_pt s)
 {

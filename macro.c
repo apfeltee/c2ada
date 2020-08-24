@@ -136,7 +136,7 @@ struct autodefs
     { NULL, NULL }
 };
 
-static void macro_add_to_list(m) macro_t* m;
+static void macro_add_to_list(macro_t* m)
 {
     if(macro_list_head)
     {
@@ -149,7 +149,7 @@ static void macro_add_to_list(m) macro_t* m;
     macro_list_tail = m;
 }
 
-static void macro_add_to_table(m) macro_t* m;
+static void macro_add_to_table(macro_t* m)
 {
     int index;
 
@@ -161,7 +161,7 @@ static void macro_add_to_table(m) macro_t* m;
     hash_table[index] = m;
 }
 
-void macro_undef(name) char* name;
+void macro_undef(char* name)
 {
     macro_t *m, *last;
     hash_t hash;
@@ -194,11 +194,14 @@ void macro_undef(name) char* name;
     }
 }
 
-void macro_def(name, body, len, params, formals, definition, eol_comment) char *name, *body;
-int len, params;
-char** formals;
-file_pos_t definition;
-char* eol_comment;
+void macro_def(
+    const char* name,
+    const char* body,
+    int len,
+    int params,
+    char** formals,
+    file_pos_t definition,
+    char* eol_comment)
 {
     macro_t* m;
 
@@ -225,7 +228,7 @@ char* eol_comment;
     macro_add_to_table(m);
 }
 
-macro_t* macro_find(name) char* name;
+macro_t* macro_find(char* name)
 {
     macro_t* m;
     hash_t hash;
@@ -245,7 +248,7 @@ macro_t* macro_find(name) char* name;
     return NULL;
 }
 
-void macro_init(force) int force;
+void macro_init(int force)
 {
     static int macro_initialized = 0;
     macro_t* m;
@@ -292,9 +295,7 @@ void cpp_show_predefines()
 }
 
 #if 0
-macro_t*
-nth_macro(n)
-	int n;
+macro_t* nth_macro(int n)
 {
 	static int lastn = -10;
 	static macro_t *lastm = NULL;

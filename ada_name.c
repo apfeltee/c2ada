@@ -215,7 +215,7 @@ char* uniq_name(char* name, int ord)
     return un->uname;
 }
 
-ident_case_t id_case(id) char* id;
+ident_case_t id_case(char* id)
 {
     return Lower; /* mg */
 
@@ -258,8 +258,7 @@ static void capitalize(char* id)
     }
 }
 
-void id_format(id, icase) char* id;
-ident_case_t icase;
+void id_format(char* id, ident_case_t icase)
 {
     switch(icase)
     {

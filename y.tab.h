@@ -184,7 +184,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 20 "grammar.y" /* yacc.c:1909  */
+#line 21 "grammar.y" /* yacc.c:1909  */
 
     int 	val;
     node_t *	nod;

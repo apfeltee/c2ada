@@ -36,8 +36,7 @@ extern bool do_const_macros;
 static symbol_t builtins[N_BUILTINS];
 static typeinfo_t builtin_types[N_BUILTINS];
 
-void not_implemented(file, line) char* file;
-int line;
+void not_implemented(char* file, int line)
 {
     extern file_pos_t yypos;
     fatal(file_name(yypos), line_number(yypos),
@@ -48,7 +47,7 @@ int line;
  * All types get hashed to make type comparisons faster and
  * to maintain the anonymous type tables
  */
-static unsigned int set_hash_for_type(typ) typeinfo_t* typ;
+static unsigned int set_hash_for_type(typeinfo_t* typ)
 {
     unsigned int hash = 0;
 
@@ -219,7 +218,7 @@ static bool sym_aliases(symbol_t* s1, symbol_t* s2)
  * Tags can be function parameters, fields of
  * unions and structs or enumeration literals.
  */
-static int equal_tags(t1, t2) typeinfo_t *t1, *t2;
+static int equal_tags(typeinfo_t *t1, typeinfo_t *t2)
 {
     symbol_t *bt1, *bt2;
 
@@ -371,7 +370,7 @@ bool assignment_equal_types(typeinfo_pt t1, typeinfo_pt t2)
 /*
  * Type allocator.
  */
-typeinfo_t* new_type(kind) typekind_t kind;
+typeinfo_t* new_type(typekind_t kind)
 {
     typeinfo_t* typ;
 
@@ -381,7 +380,7 @@ typeinfo_t* new_type(kind) typekind_t kind;
     return typ;
 }
 
-typeinfo_t* copy_type(typ) typeinfo_t* typ;
+typeinfo_t* copy_type(typeinfo_t* typ)
 {
     typeinfo_t* t;
 
@@ -396,7 +395,7 @@ typeinfo_t* copy_type(typ) typeinfo_t* typ;
     return t;
 }
 
-symbol_t* copy_sym(sym) symbol_t* sym;
+symbol_t* copy_sym(symbol_t* sym)
 {
     symbol_t* d;
     d = new_sym();
@@ -447,7 +446,7 @@ static typeinfo_t* typeof_enum()
     return typ;
 }
 
-static typeinfo_t* typeof_rec(is_union) int is_union;
+static typeinfo_t* typeof_rec(int is_union)
 {
     return new_type(is_union ? union_of : struct_of);
 }
@@ -665,7 +664,7 @@ typeinfo_pt typeof_char_array(void)
     return add_array_type(typeof_char(), 0);
 }
 
-decl_class_t decl_class(typ) typeinfo_t* typ;
+decl_class_t decl_class(typeinfo_t* typ)
 {
     if(typ == NULL)
     {
@@ -703,13 +702,12 @@ decl_class_t decl_class(typ) typeinfo_t* typ;
  * This really is a crappy way of dealing with long long, but
  * it was convenient at the time.
  */
-static int how_long(tmod) int tmod;
+static int how_long(int tmod)
 {
     return tmod >> 12;
 }
 
-static void apply_type_mod(tmod, typ) int tmod;
-typeinfo_t* typ;
+static void apply_type_mod(int tmod, typeinfo_t* typ)
 {
     if(decl_class(typ) == int_decl)
     {
@@ -791,7 +789,7 @@ static symbol_t* sym_decl(typeinfo_pt typ, node_pt n, bool uniq)
 
     configured_sym_info(sym, typ);
 
-    if(sym->private)
+    if(sym->isprivate)
     {
         set_unit_has_private_part(pos_unit(sym->sym_def));
     }
@@ -818,7 +816,7 @@ static symbol_t* sym_decl(typeinfo_pt typ, node_pt n, bool uniq)
     return sym;
 }
 
-typeinfo_t *concat_types(t1, t2) typeinfo_t *t1, *t2;
+typeinfo_t *concat_types(typeinfo_t *t1, typeinfo_t* t2)
 {
     typeinfo_t* t;
 
@@ -834,7 +832,7 @@ typeinfo_t *concat_types(t1, t2) typeinfo_t *t1, *t2;
     return t1;
 }
 
-symbol_t *concat_symbols(s1, s2) symbol_t *s1, *s2;
+symbol_t *concat_symbols(symbol_t *s1, symbol_t* s2)
 {
     symbol_t* s;
 
@@ -863,7 +861,7 @@ symbol_t* concat_ellipsis(symbol_t* sym)
     return concat_symbols(sym, ellipsis_sym);
 }
 
-static int alignto(val, align) int val, align;
+static int alignto(int val, int align)
 {
     if(align <= 2)
     {
@@ -873,20 +871,19 @@ static int alignto(val, align) int val, align;
     return (val + align) & ~align;
 }
 
-static int type_alignof(typ) typeinfo_t* typ;
+static int type_alignof(typeinfo_t* typ)
 {
     assert(typ != NULL);
     return typ->type_alignof;
 }
 
-int type_sizeof(typ) typeinfo_t* typ;
+int type_sizeof(typeinfo_t* typ)
 {
     assert(typ != NULL);
     return typ->type_sizeof;
 }
 
-static void warn_negative_array(elem, nelem) node_t* elem;
-host_int_t nelem;
+static void warn_negative_array(node_t* elem, host_int_t nelem)
 {
     warning(NODE_FNAME(elem), NODE_FLINE(elem),
             "Array length %d is not supported (see %s:%d)", nelem, __FILE__, __LINE__);
@@ -969,7 +966,7 @@ typeinfo_pt add_array_type(typeinfo_pt typ, node_pt elem)
     return array_type;
 }
 
-typeinfo_t* typeof_typemod(adj) int adj;
+typeinfo_t* typeof_typemod(int adj)
 {
     typeinfo_t* typ;
 
@@ -1023,7 +1020,7 @@ typeinfo_t* typeof_typemod(adj) int adj;
     return typ;
 }
 
-static void combine_typespec(tmod) typeinfo_t* tmod;
+static void combine_typespec(typeinfo_t* tmod)
 {
     typeinfo_t* typ;
 
@@ -1101,7 +1098,7 @@ static void combine_typespec(tmod) typeinfo_t* tmod;
     deallocate(typ);
 }
 
-typeinfo_t* typeof_typespec(tlist) typeinfo_t* tlist;
+typeinfo_t* typeof_typespec(typeinfo_t* tlist)
 {
     typeinfo_t* result = tlist;
 
@@ -1173,7 +1170,7 @@ top:
     return result;
 }
 
-typeinfo_t* typeof_specifier(sym) symbol_t* sym;
+typeinfo_t* typeof_specifier(symbol_t* sym)
 {
     typeinfo_t* typ;
 
@@ -1186,7 +1183,7 @@ typeinfo_t* typeof_specifier(sym) symbol_t* sym;
     return typ;
 }
 
-typeinfo_t* add_pointer_type(typ) typeinfo_t* typ;
+typeinfo_t* add_pointer_type(typeinfo_t* typ)
 {
     typeinfo_t* ptr_type;
 
@@ -1201,7 +1198,7 @@ typeinfo_t* add_pointer_type(typ) typeinfo_t* typ;
     return ptr_type;
 }
 
-typeinfo_t* add_function_type(typ) typeinfo_t* typ;
+typeinfo_t* add_function_type(typeinfo_t* typ)
 {
     typeinfo_t* ftype;
 
@@ -1213,7 +1210,7 @@ typeinfo_t* add_function_type(typ) typeinfo_t* typ;
     return ftype;
 }
 
-typeinfo_t* pointer_to_sym(sym) symbol_t* sym;
+typeinfo_t* pointer_to_sym(symbol_t* sym)
 {
     typeinfo_t* ptr_type;
     static typeinfo_t* int_pointer = NULL;
@@ -1229,7 +1226,7 @@ typeinfo_t* pointer_to_sym(sym) symbol_t* sym;
     return ptr_type;
 }
 
-static symbol_t* KnR_formals(params) node_t* params;
+static symbol_t* KnR_formals(node_t* params)
 {
     symbol_t *p1, *p2;
 
@@ -1255,7 +1252,7 @@ static symbol_t* KnR_formals(params) node_t* params;
     return p1;
 }
 
-static symbol_t* grok_formals(params) node_t* params;
+static symbol_t* grok_formals(node_t* params)
 {
     symbol_t* p;
 
@@ -1272,8 +1269,7 @@ static symbol_t* grok_formals(params) node_t* params;
     return KnR_formals(params);
 }
 
-static typeinfo_t* add_field(typ, width) typeinfo_t* typ;
-node_t* width;
+static typeinfo_t* add_field(typeinfo_t* typ, node_t* width)
 {
     typeinfo_t* ftype;
 
@@ -1299,9 +1295,8 @@ node_t* width;
     return ftype;
 }
 
-static symbol_t* grok_decl_list(tspec, vlist, uniq) typeinfo_t* tspec;
-node_t* vlist;
-int uniq; /* Generate uniq Ada idenifer name */
+static symbol_t* grok_decl_list(typeinfo_t* tspec, node_t* vlist, int uniq)
+/* Generate uniq Ada idenifer name */
 {
     symbol_t *d1, *d2;
 
@@ -1345,7 +1340,7 @@ int uniq; /* Generate uniq Ada idenifer name */
                 typeinfo_pt atspec = add_array_type(tspec, vlist->node.binary.r);
                 if(vlist->node.binary.l)
                 {
-                    d1 = grok_decl_list(atspec, vlist->node.binary.l);
+                    d1 = grok_decl_list(atspec, vlist->node.binary.l, 0);
                 }
                 else
                 {
@@ -1392,7 +1387,7 @@ int uniq; /* Generate uniq Ada idenifer name */
     return NULL;
 }
 
-static void check_type_base(sym) symbol_t* sym;
+static void check_type_base(symbol_t* sym)
 {
     typeinfo_t* typ;
 
@@ -1413,7 +1408,7 @@ static void check_type_base(sym) symbol_t* sym;
     }
 }
 
-static symbol_t* set_symbol_kind(vlist) symbol_t* vlist;
+static symbol_t* set_symbol_kind(symbol_t* vlist)
 {
     symbol_t* s;
     typeinfo_t* typ;
@@ -1446,7 +1441,7 @@ static symbol_t* set_symbol_kind(vlist) symbol_t* vlist;
  * you can say:	 p debug_type(typ)
  * buy vads :-)
  */
-static void dump_type(typ) typeinfo_t* typ;
+static void dump_type(typeinfo_t* typ)
 {
     symbol_t* basetype;
 
@@ -1519,7 +1514,7 @@ static void dump_type(typ) typeinfo_t* typ;
     fputc('\n', stderr);
 }
 
-static int simple_ptr_typedef(typ) typeinfo_t* typ;
+static int simple_ptr_typedef(typeinfo_t* typ)
 {
     if(typ->is_typedef && typ->type_kind == pointer_to)
     {
@@ -1859,7 +1854,7 @@ static void grok_decl(symbol_t* sym)
     }
 }
 
-void grok_declarations(list) symbol_t* list;
+void grok_declarations(symbol_t* list)
 {
     symbol_t* next;
 
@@ -1882,14 +1877,13 @@ void grok_func_param_decls(symbol_t* func)
     }
 }
 
-symbol_t* nested_declarations(list) symbol_t* list;
+symbol_t* nested_declarations(symbol_t* list)
 {
     grok_declarations(list);
     return list;
 }
 
-static void grok_enum_lits(tags, typ) symbol_t* tags;
-typeinfo_t* typ;
+static void grok_enum_lits(symbol_t* tags, typeinfo_t* typ)
 {
     symbol_t* sym;
     int ord = 0;
@@ -1909,7 +1903,7 @@ typeinfo_t* typ;
     }
 }
 
-static symbol_t* gen_enum_sym(id) node_t* id;
+static symbol_t* gen_enum_sym(node_t* id)
 {
     symbol_t* sym;
     char enum_name[2048];
@@ -1931,7 +1925,7 @@ static symbol_t* gen_enum_sym(id) node_t* id;
     return sym;
 }
 
-static void add_tags(decls, tags) symbol_t *decls, *tags;
+static void add_tags(symbol_t *decls, symbol_t *tags)
 {
     symbol_t* sym;
 
@@ -1942,8 +1936,7 @@ static void add_tags(decls, tags) symbol_t *decls, *tags;
     }
 }
 
-static void grok_sizeof_struct(styp, fields) typeinfo_t* styp;
-symbol_t* fields;
+static void grok_sizeof_struct(typeinfo_t* styp, symbol_t* fields)
 {
     symbol_t* sym;
     typeinfo_t *typ, *ftype;
@@ -2018,8 +2011,7 @@ symbol_t* fields;
     set_hash_for_type(styp);
 }
 
-static void grok_sizeof_union(utyp, fields) typeinfo_t* utyp;
-symbol_t* fields;
+static void grok_sizeof_union(typeinfo_t* utyp, symbol_t* fields)
 {
     symbol_t* sym;
     typeinfo_t* typ;
@@ -2065,7 +2057,7 @@ static void grok_alignof_record(typeinfo_pt rtyp, symbol_t* fields)
     set_hash_for_type(rtyp);
 }
 
-static void grok_type(typ) typeinfo_t* typ;
+static void grok_type(typeinfo_t* typ)
 {
     if(typ == NULL)
         return;
@@ -2207,7 +2199,7 @@ symbol_t* grok_enumerator(node_pt id, node_pt val)
     return sym;
 }
 
-static char* gen_type_name(prefix) int prefix;
+static char* gen_type_name(int prefix)
 {
     char name[128];
 
@@ -2215,8 +2207,7 @@ static char* gen_type_name(prefix) int prefix;
     return new_string(name);
 }
 
-static char *add_prefix(name, prefix, buf, len) char *name, *buf;
-int prefix, len;
+static char *add_prefix(char* name, int prefix, char* buf, int len)
 {
     char* result;
     int nlen;
@@ -2241,7 +2232,7 @@ int prefix, len;
 
 bool new_naming_scheme = false;
 
-symbol_t* anonymous_enum(literals) symbol_t* literals;
+symbol_t* anonymous_enum(symbol_t* literals)
 {
     symbol_t* sym;
 
@@ -2263,8 +2254,7 @@ symbol_t* anonymous_enum(literals) symbol_t* literals;
     return sym;
 }
 
-symbol_t* named_enum(id, literals) node_t* id;
-symbol_t* literals;
+symbol_t* named_enum(node_t* id, symbol_t* literals)
 {
     symbol_t* sym;
     char buf[1024];
@@ -2299,7 +2289,7 @@ symbol_t* literals;
     return sym;
 }
 
-symbol_t* enum_reference(id) node_t* id;
+symbol_t* enum_reference(node_t* id)
 {
     char buf[256];
     char* name;
@@ -2342,12 +2332,12 @@ symbol_t* enum_reference(id) node_t* id;
     return sym;
 }
 
-static char* anonymous_rec_name(is_union) int is_union;
+static char* anonymous_rec_name(int is_union)
 {
     return gen_type_name(is_union ? UNION_PREFIX : STRUCT_PREFIX);
 }
 
-static symbol_t* delete_unamed_fields(tags) symbol_t* tags;
+static symbol_t* delete_unamed_fields(symbol_t* tags)
 {
     symbol_t* head = NULL;
     symbol_t* last = NULL;
@@ -2381,8 +2371,7 @@ static symbol_t* delete_unamed_fields(tags) symbol_t* tags;
     return head;
 }
 
-symbol_t* anonymous_rec(is_union, tags) int is_union;
-symbol_t* tags;
+symbol_t* anonymous_rec(int is_union, symbol_t* tags)
 {
     symbol_t* sym;
     typeinfo_t* rtyp;
@@ -2533,7 +2522,7 @@ symbol_t* rec_reference(bool is_union, node_pt id)
     return sym;
 }
 
-static int no_typemods(typ) typeinfo_t* typ;
+static int no_typemods(typeinfo_t* typ)
 {
     for(; typ; typ = typ->type_next)
     {
@@ -2545,7 +2534,7 @@ static int no_typemods(typ) typeinfo_t* typ;
     return 1;
 }
 
-symbol_t* novar_declaration(tlist) typeinfo_t* tlist;
+symbol_t* novar_declaration(typeinfo_t* tlist)
 {
     symbol_t* result = NULL;
 
@@ -2678,7 +2667,7 @@ symbol_t* function_spec(typeinfo_pt tlist, node_pt f, int scope_level)
     return fdecl;
 }
 
-static void set_field_names(tags) symbol_t* tags;
+static void set_field_names(symbol_t* tags)
 {
     for(; tags; tags = tags->sym_parse_list)
     {
@@ -2739,7 +2728,7 @@ static char* next_param_name()
     return new_string(buf);
 }
 
-symbol_t* noname_simple_param(typ) typeinfo_t* typ;
+symbol_t* noname_simple_param(typeinfo_t* typ)
 {
     symbol_t* sym;
     char* name;
@@ -2793,14 +2782,12 @@ static symbol_t* abstract_param(typeinfo_t* typ, node_t* adecl, bool named)
     return sym;
 }
 
-symbol_t* noname_abstract_param(typ, adecl) typeinfo_t* typ;
-node_t* adecl;
+symbol_t* noname_abstract_param(typeinfo_t* typ, node_t* adecl)
 {
     return abstract_param(typ, adecl, false);
 }
 
-symbol_t* named_abstract_param(typ, adecl) typeinfo_t* typ;
-node_t* adecl;
+symbol_t* named_abstract_param(typeinfo_t* typ, node_t* adecl)
 {
     return abstract_param(typ, adecl, true);
 }
@@ -2816,7 +2803,7 @@ typeinfo_t* abstract_declarator_type(typeinfo_pt typ, node_pt adecl)
     return result;
 }
 
-static void KnR_tag_type(p, params) symbol_t *p, *params;
+static void KnR_tag_type(symbol_t *p, symbol_t *params)
 {
     for(; params; params = params->sym_parse_list)
     {
@@ -2828,7 +2815,7 @@ static void KnR_tag_type(p, params) symbol_t *p, *params;
     }
 }
 
-void KnR_params(func, params) symbol_t *func, *params;
+void KnR_params(symbol_t *func, symbol_t *params)
 {
     symbol_t* tag;
 
@@ -2842,7 +2829,7 @@ void KnR_params(func, params) symbol_t *func, *params;
     }
 }
 
-void function_def(f) symbol_t* f;
+void function_def(symbol_t* f)
 {
     symbol_t* dup;
 
@@ -2917,10 +2904,10 @@ int num_dimensions(typeinfo_pt typ)
  * Element 0 is the number of dimensions.
  * Elements 1..n are the value of each dimension.
  */
-int* get_dimensions(typ) typeinfo_t* typ;
+int* get_dimensions(typeinfo_t* typ)
 {
     int ndim = num_dimensions(typ);
-    int* res = allocate((ndim + 1) * sizeof(int));
+    int* res = (int*)allocate((ndim + 1) * sizeof(int));
     int i;
 
     res[0] = ndim;
@@ -2952,7 +2939,7 @@ symbol_t* private_type_null(symbol_t* tsym)
     nsym->sym_scope = tsym->sym_scope;
     nsym->sym_def = tsym->sym_def;
     nsym->sym_type = tsym->sym_type;
-    nsym->private = true;
+    nsym->isprivate = true;
 
     sprintf(name, "null_%s", tsym->sym_ada_name);
     nsym->sym_ada_name = ada_name(name, pos_unit(nsym->sym_def));

@@ -42,7 +42,7 @@ char** configured_reserved_ids(int* count_p)
     assert(count != -1);
     *count_p = count;
 
-    result = allocate((sizeof(char*)) * (count + 1));
+    result = (char**)allocate((sizeof(char*)) * (count + 1));
     for(i = 0; i < count; i++)
     {
         PyObject* item;
@@ -168,7 +168,7 @@ bool configured_sym_info(symbol_t* sym, typeinfo_pt type)
         PyObject* privateObj = PyObject_GetAttrString(declObj, "private");
         if(privateObj)
         {
-            sym->private = PyObject_IsTrue(privateObj);
+            sym->isprivate = PyObject_IsTrue(privateObj);
         }
         else
         {

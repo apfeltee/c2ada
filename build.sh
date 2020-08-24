@@ -7,7 +7,7 @@ for file in *.c; do
   ofile="${file%.*}.o"
   if [[ ! -e "$ofile" ]]; then
     echo ">>>> $file"
-    if ! gcc -I"$inc" -w -c "$file" -o "$ofile"; then
+    if ! g++ -x c++ -w -I"$inc" -w -c "$file" -o "$ofile"; then
       exit
       true
     fi

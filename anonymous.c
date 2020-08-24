@@ -50,7 +50,7 @@ char* predef_name_copy(char* s)
 /*
  * don't generate names ending in _t_t
  */
-static int ends_in_t(str) char* str;
+static int ends_in_t(char* str)
 {
     for(; *str; str++)
     {
@@ -102,7 +102,7 @@ typeinfo_pt find_anonymous_type(typeinfo_pt typ)
 /*
  * add type to Anonymous type hash table
  */
-void store_anonymous_type(typ) typeinfo_t* typ;
+void store_anonymous_type(typeinfo_t* typ)
 {
     int index;
     index = typ->type_hash & (TYPE_HASH_MAX - 1);
@@ -186,7 +186,7 @@ symbol_t* get_anonymous_type(typeinfo_pt typ)
     ident_case_t icase;
     char buf[512];
     bool type_is_func_ptr = is_function_pointer(typ);
-    bool private = false;
+    bool isprivate = false;
 
     assert(typ != NULL);
 
@@ -244,8 +244,7 @@ symbol_t* get_anonymous_type(typeinfo_pt typ)
 
         rsym = rtyp->type_base;
         assert(rsym != NULL);
-    private
-        = rsym->private;
+        isprivate = rsym->isprivate;
 
         /* assert(rsym->gened); */
         /* might not be true any more if incomplete struct */
@@ -328,7 +327,7 @@ symbol_t* get_anonymous_type(typeinfo_pt typ)
 
     basetype->sym_ident = new_node(_Ident, new_string(buf));
     basetype->sym_ada_name = ada_name(basetype->sym_ident->node.id.name, pos_unit(yypos));
-    basetype->private = private;
+    basetype->isprivate = isprivate;
 
     return basetype;
 }

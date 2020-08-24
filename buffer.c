@@ -17,13 +17,13 @@
 
 static buffer_t* free_list;
 
-static void reclaim(buf) buffer_t* buf;
+static void reclaim(buffer_t* buf)
 {
     buf->next = free_list;
     free_list = buf;
 }
 
-void buf_destroy(buf) buffer_t* buf;
+void buf_destroy(buffer_t* buf)
 {
     buffer_t *next, *p;
 
@@ -39,7 +39,7 @@ void buf_destroy(buf) buffer_t* buf;
     buf->tail = 0;
 }
 
-void buf_init(buf) buffer_t* buf;
+void buf_init(buffer_t* buf)
 {
     buf->next = NULL;
     buf->last = NULL;
@@ -47,7 +47,7 @@ void buf_init(buf) buffer_t* buf;
     buf->tail = 0;
 }
 
-int buf_empty(buf) buffer_t* buf;
+int buf_empty(buffer_t* buf)
 {
     buffer_t* next;
 
@@ -77,7 +77,7 @@ int buf_empty(buf) buffer_t* buf;
     return 0;
 }
 
-char buf_get(buf) buffer_t* buf;
+char buf_get(buffer_t* buf)
 {
     if(buf->head == buf->tail)
     {
@@ -110,8 +110,7 @@ static buffer_t* gen_overflow_buf()
     return buf;
 }
 
-void buf_add(buf, c) buffer_t* buf;
-int c;
+void buf_add(buffer_t* buf, int c)
 {
     int index;
     buffer_t* l;
@@ -145,7 +144,7 @@ int c;
     buf->tail = index;
 }
 
-void buf_concat(buf, from_buf) buffer_t *buf, *from_buf;
+void buf_concat(buffer_t *buf, buffer_t* from_buf)
 {
     char c;
 
@@ -158,8 +157,7 @@ void buf_concat(buf, from_buf) buffer_t *buf, *from_buf;
     }
 }
 
-void buf_add_str(buf, str) buffer_t* buf;
-char* str;
+void buf_add_str(buffer_t* buf, char* str)
 {
     if(str == NULL)
     {
@@ -172,7 +170,7 @@ char* str;
     }
 }
 
-int buf_count(buf) buffer_t* buf;
+int buf_count(buffer_t* buf)
 {
     buffer_t* p;
     int count;
@@ -199,8 +197,7 @@ int buf_count(buf) buffer_t* buf;
     return count;
 }
 
-void buf_move_to(buf, str) buffer_t* buf;
-char* str;
+void buf_move_to(buffer_t* buf, char* str)
 {
     int index = buf->head;
     int tail = buf->tail;
@@ -226,7 +223,7 @@ char* str;
     buf_init(buf);
 }
 
-char* buf_get_str(buf) buffer_t* buf;
+char* buf_get_str(buffer_t* buf)
 {
     int len = buf_count(buf);
     char* str;

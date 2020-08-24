@@ -12,8 +12,9 @@
 /* from scan.c */
 extern file_pos_t yypos;  /* in scan.c */
 extern comment_block_pt fetch_comment_block(void);
-extern void yield_typedef(boolean);
+extern void yield_typedef(bool);
 extern void td(void);
+extern void yyerror(char* msg);
 
 %}
 
@@ -695,7 +696,7 @@ expression
 assignment_expression
     : conditional_expression
     | unary_expression assignment_operator assignment_expression
-        {$$ = new_node($2, $1, $3);}
+        {$$ = new_node((node_kind_t)$2, $1, $3);}
     ;
 
 assignment_operator

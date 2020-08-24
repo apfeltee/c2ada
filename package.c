@@ -80,7 +80,7 @@ typedef struct
 
 static ptrs_pkg_def_pt new_ptrs_pkg_def(void)
 {
-    ptrs_pkg_def_pt pkg = allocate(sizeof(ptrs_pkg_def_t));
+    ptrs_pkg_def_pt pkg = (ptrs_pkg_def_pt)allocate(sizeof(ptrs_pkg_def_t));
     pkg->pkg.kind = Pointers_pkg;
     return pkg;
 }

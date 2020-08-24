@@ -401,7 +401,7 @@ char* null_pointer_value_name(typeinfo_pt type)
     {
         return "System.Null_Address";
     }
-    else if(tsym && tsym->private)
+    else if(tsym && tsym->isprivate)
     {
         symbol_t* sym = private_type_null(tsym);
 

@@ -152,7 +152,7 @@ void indent_to(int n)
     }
 }
 
-void put_string(s) char* s;
+void put_string(const char* s)
 {
     if(s == NULL)
         s = " <NULL> ";
@@ -162,7 +162,7 @@ void put_string(s) char* s;
     }
 }
 
-void putf(char* s, ...)
+void putf(const char* s, ...)
 {
     va_list ap;
     char c;

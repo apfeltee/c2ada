@@ -1,7 +1,7 @@
 
 #include "c2ada.h"
 
-hash_t common_hash(str) char* str;
+hash_t common_hash(char* str)
 {
     hash_t val;
 
@@ -13,7 +13,7 @@ hash_t common_hash(str) char* str;
     return val;
 }
 
-int lcase(c) int c;
+int lcase(int c)
 {
     if(c >= 'A' && c <= 'Z')
     {
@@ -22,7 +22,7 @@ int lcase(c) int c;
     return c;
 }
 
-hash_t lcase_hash(str) char* str;
+hash_t lcase_hash(char* str)
 {
     hash_t val;
     char c;
@@ -36,7 +36,7 @@ hash_t lcase_hash(str) char* str;
     return val;
 }
 
-int lcasecmp(s1, s2) char *s1, *s2;
+int lcasecmp(char* s1, char* s2)
 {
     char c1, c2;
 

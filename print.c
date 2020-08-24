@@ -6,7 +6,7 @@
 
 static int nprinted = 0;
 
-static void spaces(n) int n;
+static void spaces(int n)
 {
     int i;
 
@@ -17,35 +17,33 @@ static void spaces(n) int n;
             putchar(' ');
 }
 
-static int compar(left, right) char **left, **right;
+static int compar(char** left, char** right)
 {
     return (*left != *right);
 }
 
-static int /* return 1: already printed, 0: not yet */
-print_addr(s, addr, indent) char* s;
-int addr, indent;
+/* return 1: already printed, 0: not yet */
+static int print_addr(const char* s, const void* addr, int indent)
 {
     int tmp;
     char* res;
-    extern char* lsearch();
     static char* printed_addrs[MAXPRINT];
 
     spaces(indent);
     printf("%s address=%x\n", s, addr);
 
     tmp = nprinted;
-    res = lsearch(&addr, printed_addrs, &nprinted, sizeof(char*), compar);
+    /*res = lsearch(&addr, printed_addrs, &nprinted, sizeof(char*), compar);*/
     return (nprinted == tmp);
 }
+
 
 static void print_stmt_t(stmt_pt s, int indent);
 static void print_node_t(node_pt n, int indent);
 static void print_symbol_t(symbol_t* s, int indent);
 static void print_typeinfo_t(typeinfo_t* t, int indent);
 
-static void print_unknown(s, val) char* s;
-int val;
+static void print_unknown(char* s, int val)
 {
     printf("unknown %s %d", s, val);
 }
@@ -573,9 +571,8 @@ static void print_node_t(node_pt n, int indent)
     printf("baseval %d\n", n->baseval);
 }
 
-static void print_uns_pair(s, i, indent) char* s;
-unsigned i;
-int indent;
+
+static void print_uns_pair(char* s, unsigned int i, int indent)
 {
     if(i == 0)
         return; /* don't print 0 int fields */
@@ -834,8 +831,7 @@ void print_case_stmt(case_stmt_pt cp, int indent)
     printf("case_stmt.default_branch at %lx:\n", (unsigned long int)cp->default_branch);
 }
 
-void print_macro(m, indent) macro_t* m;
-int indent;
+void print_macro(macro_t* m, int indent)
 {
     int i;
 
@@ -912,8 +908,7 @@ void print_macro_function(macro_function_t* f, int indent)
     printf("\n");
 }
 
-void print_cpp_eval_result_t(res, indent) cpp_eval_result_t* res;
-int indent;
+void print_cpp_eval_result_t(cpp_eval_result_t* res, int indent)
 {
     spaces(indent);
     printf("eval_result_kind %s\n", nameof_cpp_eval_result_kind_t(res->eval_result_kind));
@@ -944,13 +939,12 @@ int indent;
     print_typeinfo_t(res->explicit_type, indent + 4);
 }
 
-void print_file_pos(pos) file_pos_t pos;
+void print_file_pos(file_pos_t pos)
 {
     printf("%d = file=%s line=%d\n", (int)pos, file_name(pos), (int)line_number(pos));
 }
 
-void print_comment_block(bl, indent) struct comment_block* bl;
-int indent;
+void print_comment_block(struct comment_block* bl, int indent)
 {
     int i;
 

@@ -8,8 +8,7 @@
 int Num_Errors;
 int Num_Warnings;
 
-static void prefix(file, line, msg) char *file, *msg;
-int line;
+static void prefix(char* file, int line, char* msg)
 {
     fflush(stdout);
 
@@ -111,10 +110,7 @@ void inform(char* f, int l, char* fmt, ...)
 }
 
 #if 0
-void
-assert_failed(f, l, msg)
-	char *f, *msg;
-	int l;
+void assert_failed(char* f, int l, char* msg)
 {
 	prefix(f,l,"Assertion Failed");
 	fputs(msg, stderr);
@@ -131,8 +127,7 @@ static void unix_error()
     }
 }
 
-void syserr(file, line) char* file;
-int line;
+void syserr(char* file, int line)
 {
     Num_Errors++;
     prefix(file, line, "Error");

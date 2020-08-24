@@ -7,6 +7,11 @@
 #include "c2ada.h"
 #include "hostinfo.h"
 
+#undef NULL
+#define NULL 0
+
+#define streq(a, b) (!strcmp(a, b))
+
 
 extern int comment_size;
 extern int repspec_flag;
@@ -16,22 +21,21 @@ extern int flag_unions;
 extern int import_decls;
 extern int export_from_c;
 
-#undef NULL
-#define NULL 0
-
-#define streq(a, b) (!strcmp(a, b))
-
-extern int ada_version;
-int max_const_name_indent = 24;
-
-static int first_anon_func = 0;
+enum array_gen_t
+{
+    init_var_array,
+    var_array,
+    bounds_array,
+    box_array
+};
 
 typedef struct
 {
     symbol_t *qhead, *qtail;
 } sym_q;
 
-static struct
+
+struct compinfo_t
 {
     sym_q simple_ptr_typeq;
     sym_q simple_array_typeq;
@@ -47,7 +51,41 @@ static struct
      * for valid Ada semantics.
      */
     sym_q sort_typeq;
-} compilation[MAX_UNIQ_FNAMES];
+};
+
+static struct compinfo_t compilation[MAX_UNIQ_FNAMES];
+
+
+extern int ada_version;
+int max_const_name_indent = 24;
+
+static int first_anon_func = 0;
+
+
+static char* c_char;
+static char* c_signed_char;
+static char* c_function_pointer;
+static char* c_bits;
+static char* c_signed_long_long;
+static char* c_unsigned_long_long;
+static char* c_unsigned_long;
+static char* c_signed_long;
+static char* c_int;
+static char* c_unsigned_int;
+static char* c_signed_int;
+static char* c_unsigned_short;
+static char* c_signed_short;
+static char* c_unsigned_char;
+static char* c_void;
+static char* c_char_ptr;
+static char* c_const_char_ptr;
+static char* c_char_array;
+static char* c_void_star;
+static char* c_const_void_star;
+static char* c_array_index;
+static char* c_char_array_index;
+
+struct typeinfo_t* bogus_type;
 
 /* forward references */
 static int gen_params(symbol_t* params, int pass, char* result_to_add);
@@ -103,7 +141,7 @@ static void enq_before(sym_q* q, symbol_t* sym, symbol_t* ante)
     }
 }
 
-static decl_class_t points_to(typ) typeinfo_t* typ;
+static decl_class_t points_to(typeinfo_t* typ)
 {
     for(; decl_class(typ) == pointer_decl; typ = typ->type_next)
         ;
@@ -249,7 +287,7 @@ void gen_ada_lit(symbol_t* sym)
     enq(&compilation[unit].litq, sym);
 }
 
-static void put_string_both(char* s)
+static void put_string_both(const char* s)
 {
     put_string(s);
     if(output_is_spec())
@@ -271,11 +309,11 @@ static void comment_start()
     putf("%>%-- ", COMMENT_POS);
 }
 
-void print_position(pos) file_pos_t pos;
+void print_position(file_pos_t pos)
 {
     char buf[200];
     extern int output_refs;
-
+    #if 0
     if(output_refs)
     {
         sprintf(buf, "-- %s:%d\n", file_name(pos), (int)line_number(pos));
@@ -284,12 +322,13 @@ void print_position(pos) file_pos_t pos;
         put_string(buf);
     }
     else
+    #endif
     {
         put_char('\n');
     }
 }
 
-static void mark_union(sym) symbol_t* sym;
+static void mark_union(symbol_t* sym)
 {
     assert(sym != NULL);
 
@@ -297,8 +336,7 @@ static void mark_union(sym) symbol_t* sym;
            sym->sym_ada_name, file_name(sym->sym_def), line_number(sym->sym_def));
 }
 
-void print_value(val, base) host_int_t val;
-int base;
+void print_value(host_int_t val, int base)
 {
     char buf[64];
 
@@ -325,7 +363,7 @@ void print_fp_value(host_float_t val)
     putf("%[%s%]", buf);
 }
 
-static void cond_concat(count, in_quote) int *count, *in_quote;
+static void cond_concat(int* count, int* in_quote)
 {
     if(*in_quote == 0 && *count != 0)
     {
@@ -334,7 +372,7 @@ static void cond_concat(count, in_quote) int *count, *in_quote;
     }
 }
 
-static void cond_start_quote(count, in_quote) int *count, *in_quote;
+static void cond_start_quote(int* count, int* in_quote)
 {
     if(!*in_quote)
     {
@@ -344,7 +382,7 @@ static void cond_start_quote(count, in_quote) int *count, *in_quote;
     }
 }
 
-static void cond_end_quote(count, in_quote) int *count, *in_quote;
+static void cond_end_quote(int* count, int* in_quote)
 {
     if(*in_quote)
     {
@@ -484,7 +522,7 @@ void gen_char_array(char* name, char* val, bool is_wide_string, bool is_const)
     put_char(';');
 }
 
-static char* nul_name(is_wide) int is_wide;
+static char* nul_name(int is_wide)
 {
     if(is_wide)
         return ("Wide_Nul");
@@ -494,7 +532,7 @@ static char* nul_name(is_wide) int is_wide;
         return "Ascii.Nul";
 }
 
-void print_string_value(char* val, int expected_len, bool c_string)
+void print_string_value(const char* val, int expected_len, bool c_string)
 /* expected_len == -1 if there's no mandated length */
 {
     int warned = 0;
@@ -570,7 +608,7 @@ void print_char_value(int val)
     putf(isprint(val) ? "%{'%s'%}" : "%s", char_to_string(val, true));
 }
 
-static void comment_sizeof(size, align) unsigned int size, align;
+static void comment_sizeof(unsigned int size, unsigned int align)
 {
     char buf[80];
     comment_start();
@@ -578,7 +616,7 @@ static void comment_sizeof(size, align) unsigned int size, align;
     put_string(buf);
 }
 
-static int valid_comment(n) node_t* n;
+static int valid_comment(node_t* n)
 {
     return n != NULL && n->node_kind == _Ident && n->node.id.cmnt != NULL;
 }
@@ -624,7 +662,7 @@ void c_comment(node_t* n)
     print_comment(n->node.id.cmnt);
 }
 
-static void c_comment_or_position(sym) symbol_t* sym;
+static void c_comment_or_position(symbol_t* sym)
 {
     if(valid_comment(sym->sym_ident))
     {
@@ -660,13 +698,7 @@ int should_import()
     return from_header_file();
 }
 
-static char *c_char, *c_signed_char, *c_function_pointer, *c_bits,
-*c_signed_long_long, *c_unsigned_long_long, *c_unsigned_long, *c_signed_long,
-*c_int, *c_unsigned_int, *c_signed_int, *c_unsigned_short, *c_signed_short,
-*c_unsigned_char, *c_void, *c_char_ptr, *c_const_char_ptr, *c_char_array,
-*c_void_star, *c_const_void_star, *c_array_index, *c_char_array_index, *c_char_array;
 
-struct typeinfo_t* bogus_type;
 
 void init_predef_names()
 {
@@ -800,8 +832,7 @@ char* int_type_builtin_name(typeinfo_pt typ)
     return 0;
 }
 
-char* type_nameof(typ, use_parent_type, is_param) typeinfo_t* typ;
-int use_parent_type, is_param;
+char* type_nameof(typeinfo_t* typ, int use_parent_type, int is_param)
 {
     static char buf[BIGGEST_TYPE_NAME];
 
@@ -944,7 +975,7 @@ static void gen_int_type(symbol_t* sym)
     set_symbol_done(sym);
 }
 
-static void gen_fp_type(sym) symbol_t* sym;
+static void gen_fp_type(symbol_t* sym)
 {
     gen_int_type(sym);
 }
@@ -996,6 +1027,7 @@ setup_tags(symbol_t* tag, symbol_t*** list_addr, int* ntags, int* default_order,
  * Called from gen_enum_type.
  */
 {
+    typedef int (*cmpfunc_t)(const void*, const void*);
     symbol_t *t, **list;
     int ntg;
     int i;
@@ -1008,12 +1040,12 @@ setup_tags(symbol_t* tag, symbol_t*** list_addr, int* ntags, int* default_order,
     if(ntg != 0)
     {
         /* Make an array holding tags */
-        *list_addr = list = allocate(ntg * sizeof(symbol_t*));
+        *list_addr = list = (symbol_t**)allocate(ntg * sizeof(symbol_t*));
         for(i = 0, t = tag; t; t = t->sym_parse_list)
             list[i++] = t;
 
         /* sort list */
-        qsort(list, ntg, sizeof(symbol_t*), compar_enum);
+        qsort(list, ntg, sizeof(symbol_t*), (cmpfunc_t)compar_enum);
         for(i = 0; i < ntg - 1; i++)
         {
             if(list[i]->sym_value.intval != i)
@@ -1101,11 +1133,7 @@ static void gen_enum_type(symbol_t* sym)
     set_symbol_done(sym);
 }
 
-void subtype_decl(subtype_name, package_name, type_name, indent, ident, pos) char *subtype_name,
-*package_name, *type_name;
-int indent;
-node_t* ident;
-file_pos_t pos;
+void subtype_decl(char* subtype_name, char* package_name, char* type_name, int indent, node_t* ident, file_pos_t pos)
 {
     if((package_name != NULL) || (strcmp(subtype_name, type_name) != 0))
     {
@@ -1158,7 +1186,7 @@ bool is_function(symbol_t* subp)
     return rtyp->type_kind != void_type;
 }
 
-static char* anon_function_pointer_name(sym) symbol_t* sym;
+static char* anon_function_pointer_name(symbol_t* sym)
 {
     static char buf[256];
 
@@ -1201,7 +1229,7 @@ static bool is_anon_function_pointer(typeinfo_pt typ)
     }
 }
 
-static int is_static(sym) symbol_t* sym;
+static int is_static(symbol_t* sym)
 {
     typeinfo_t* typ;
 
@@ -1235,21 +1263,16 @@ static char* upper_array_bound(int elem, char* index_name)
     return buf;
 }
 
-enum array_gen_t
-{
-    init_var_array,
-    var_array,
-    bounds_array,
-    box_array
-};
+
 /*
  * generate the (...) part of an array declaration.
  * return the type of the array element
  */
-static typeinfo_t* gen_dimensions(typ, a) typeinfo_t* typ;
-enum array_gen_t a;
+static typeinfo_t* gen_dimensions(typeinfo_t* typ, enum array_gen_t a)
 {
-    int ndim, i, *dimensions;
+    int i;
+    int ndim;
+    int *dimensions;
 
     assert(typ != NULL);
     dimensions = get_dimensions(typ);
@@ -1468,7 +1491,7 @@ static void gen_simple_type(symbol_t* sym)
     }
 }
 
-static void gen_simple_types(typeq) sym_q* typeq;
+static void gen_simple_types(sym_q* typeq)
 {
     symbol_t* sym;
 
@@ -1483,7 +1506,7 @@ static void gen_simple_types(typeq) sym_q* typeq;
     }
 }
 
-static void import_subtype(typeq) sym_q* typeq;
+static void import_subtype(sym_q* typeq)
 {
     symbol_t* sym;
     unit_n unit;
@@ -1496,7 +1519,7 @@ static void import_subtype(typeq) sym_q* typeq;
     }
 }
 
-static int any_type_decls(uord) int uord;
+static int any_type_decls(int uord)
 {
     return compilation[uord].simple_typeq.qhead != NULL
            || compilation[uord].simple_ptr_typeq.qhead != NULL
@@ -1537,7 +1560,7 @@ static void import_types()
     }
 }
 
-static int single_void(param) symbol_t* param;
+static int single_void(symbol_t* param)
 {
     typeinfo_t* typ;
 
@@ -1550,14 +1573,12 @@ static int single_void(param) symbol_t* param;
     return typ->type_kind == void_type;
 }
 
-static int has_void_params(param) symbol_t* param;
+static int has_void_params(symbol_t* param)
 {
     return (param == NULL || single_void(param));
 }
 
-static void gen_function_pointer(name, sym, typ) char* name;
-symbol_t* sym;
-typeinfo_t* typ;
+static void gen_function_pointer(char* name, symbol_t* sym, typeinfo_t* typ)
 {
     int indent;
     typeinfo_pt func_return;
@@ -1628,12 +1649,12 @@ void gen_access_type(symbol_t* sym, bool private_part)
     assert(sym != NULL);
     if(sym_done(sym))
         return;
-    if(private_part && !sym->private)
+    if(private_part && !sym->isprivate)
         return;
 
     output_to(sym->is_declared_in_header);
 
-    if(sym->private && !private_part)
+    if(sym->isprivate && !private_part)
     {
         symbol_t* nullsym = private_type_null(sym);
 
@@ -1694,7 +1715,7 @@ void gen_access_type(symbol_t* sym, bool private_part)
         put_char('\n');
         putf("%>pragma Convention(C, %s);\n\n", 4, sym->sym_ada_name);
     }
-    if(sym->private)
+    if(sym->isprivate)
     {
         symbol_t* nullsym = private_type_null(sym);
         putf("%>%s : constant %s := null;\n", 4, nullsym->sym_ada_name, sym->sym_ada_name);
@@ -1765,7 +1786,7 @@ static void gen_record_incompletes(sym_q* typeq, bool private_part)
 
     for(sym = typeq->qhead; sym; sym = sym->sym_gen_list)
     {
-        if(sym->private == private_part && sym_for_incomplete_record(sym))
+        if(sym->isprivate == private_part && sym_for_incomplete_record(sym))
         {
             typ = sym->sym_type;
 
@@ -1782,7 +1803,7 @@ static void gen_record_incompletes(sym_q* typeq, bool private_part)
     }
 } /* gen_record_incompletes() */
 
-static int q_max_lhs_name_len(q) sym_q* q;
+static int q_max_lhs_name_len(sym_q* q)
 {
     symbol_t* sym;
     int max = 0;
@@ -1799,7 +1820,7 @@ static int q_max_lhs_name_len(q) sym_q* q;
     return max;
 }
 
-static int max_lhs_name_len(sym) symbol_t* sym;
+static int max_lhs_name_len(symbol_t* sym)
 {
     int max, len;
 
@@ -1814,7 +1835,7 @@ static int max_lhs_name_len(sym) symbol_t* sym;
     return max;
 }
 
-static int has_bitfields(tags) symbol_t* tags;
+static int has_bitfields(symbol_t* tags)
 {
     typeinfo_t* typ;
 
@@ -1832,14 +1853,13 @@ static int has_bitfields(tags) symbol_t* tags;
     return 0;
 }
 
-static int bit_sizeof(typ) typeinfo_t* typ;
+static int bit_sizeof(typeinfo_t* typ)
 {
     assert(typ != NULL);
     return (typ->type_kind == field_type) ? typ->type_sizeof : typ->type_sizeof * BITS_PER_BYTE;
 }
 
-static void gen_record_rep(sym, largest_lhs) symbol_t* sym;
-int largest_lhs;
+static void gen_record_rep(symbol_t* sym, int largest_lhs)
 {
     symbol_t* tag;
     typeinfo_t* typ;
@@ -1908,8 +1928,7 @@ int largest_lhs;
     }
 }
 
-static int is_hidden_type_name_in_rec(rec_sym, type_name) symbol_t* rec_sym;
-char* type_name;
+static int is_hidden_type_name_in_rec(symbol_t* rec_sym, char* type_name)
 {
     symbol_t* tag;
 
@@ -2143,7 +2162,7 @@ static void gen_array_t(symbol_t* sym, bool private_part)
     set_symbol_done(sym);
 }
 
-static void gen_array_types(typeq) sym_q* typeq;
+static void gen_array_types(sym_q* typeq)
 {
     symbol_t* sym;
 
@@ -2184,7 +2203,7 @@ void gen_any_func_ptr_type(symbol_t* sym)
     }
 }
 
-static void gen_sorted_types(sym_q* typeq, bool private)
+static void gen_sorted_types(sym_q* typeq, bool isprivate)
 {
     symbol_t* sym;
     symbol_t* tag;
@@ -2198,7 +2217,7 @@ static void gen_sorted_types(sym_q* typeq, bool private)
      * function pointers that go with record fields.
      * Then on the 2nd pass generate the actual types.
      */
-    if(!private && ada_version >= 1995)
+    if(!isprivate && ada_version >= 1995)
     {
         first_anon_func = 0;
         for(sym = typeq->qhead; sym; sym = sym->sym_gen_list)
@@ -2240,13 +2259,13 @@ static void gen_sorted_types(sym_q* typeq, bool private)
                 {
                     new_line();
                 }
-                gen_access_type(sym, private);
+                gen_access_type(sym, isprivate);
                 break;
             case array_decl:
-                gen_array_t(sym, private);
+                gen_array_t(sym, isprivate);
                 break;
             case struct_decl:
-                gen_record_t(sym, private);
+                gen_record_t(sym, isprivate);
                 break;
             default:
                 assert(0);
@@ -2279,7 +2298,7 @@ static int aggs_passed_by_ref(void)
     return result;
 }
 
-static int access_to_agg(typ) typeinfo_t* typ;
+static int access_to_agg(typeinfo_t* typ)
 {
     assert(typ != NULL);
 
@@ -2315,8 +2334,7 @@ static bool is_const_charp(typeinfo_pt typ)
     return same_ada_type(typ, type_const_charp());
 }
 
-static char* param_type_name(typ, pass) typeinfo_t* typ;
-int pass;
+static char* param_type_name(typeinfo_t* typ, int pass)
 {
     static char* in_out_string;
 
@@ -2337,9 +2355,7 @@ int pass;
     }
 }
 
-static int gen_params(params, pass, result_to_add) symbol_t* params;
-int pass;
-char* result_to_add;
+static int gen_params(symbol_t* params, int pass, char* result_to_add)
 {
     symbol_t* sym;
     int largest_lhs;
@@ -2479,7 +2495,7 @@ char* result_to_add;
     return cur_indent();
 }
 
-static int multiple_params(params) symbol_t* params;
+static int multiple_params(symbol_t* params)
 {
     return params != NULL && params->sym_parse_list != NULL;
 }
@@ -2893,7 +2909,7 @@ static void import_subprograms()
     }
 }
 
-static void rational_parameter_mechanism(params) symbol_t* params;
+static void rational_parameter_mechanism(symbol_t* params)
 {
     if(has_void_params(params))
         return;
@@ -2918,7 +2934,7 @@ static void rational_parameter_mechanism(params) symbol_t* params;
     put_char(')');
 }
 
-static void rational_subp_interface_pragma(subp) symbol_t* subp;
+static void rational_subp_interface_pragma(symbol_t* subp)
 {
     indent_to(4);
 
@@ -2966,8 +2982,7 @@ static bool interfaces_c(symbol_t* sym)
     return true;
 }
 
-void interface_c(sym, indent) symbol_t* sym;
-int indent;
+void interface_c(symbol_t* sym, int indent)
 {
     if(!interfaces_c(sym))
         return;
@@ -2989,7 +3004,7 @@ int indent;
     }
 }
 
-static void gen_var_interface_pragmas(vq) sym_q* vq;
+static void gen_var_interface_pragmas(sym_q* vq)
 {
     symbol_t* sym;
     int indent = 4;
@@ -3054,7 +3069,7 @@ static void inline_func(symbol_t* sym, int indent)
     print_position(sym->sym_def);
 }
 
-static void gen_subp_interface_pragmas(fq) sym_q* fq;
+static void gen_subp_interface_pragmas(sym_q* fq)
 {
     symbol_t* sym;
 

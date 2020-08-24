@@ -6,10 +6,74 @@
 #include <string.h>
 #include <ctype.h>
 #include "c2ada.h"
+
+
+#define INIT register char* sp = instring;
+
+#include <regex.h>
+
+#define step(string, expbuf) step_impl(string, &expbuf)
+
+char *loc1, *loc2;
+
+
+/* used by grok_macro_function */
+static char* ident = "[a-zA-Z_][a-zA-Z0-9_]*";
+static regex_t ident_buf;
+static char* in_parens = "(.*)";
+static regex_t in_parens_buf;
+static char* next_arg = "[,)]";
+static regex_t next_arg_buf;
+
+/* used by grok_coercion */
+static char* int_name = "^[ 	]*int[ 	]*";
+static regex_t int_buf;
+
+static char* const_name = "^[ 	]*const[ 	]*";
+static regex_t const_buf;
+
+static char* char_name = "^[ 	]*char[ 	]*";
+static regex_t char_buf;
+
+static char* empty_params_name = "([ 	]*)";
+static regex_t empty_params_buf;
+
+static char* float_name = "^[ 	]*float[ 	]*";
+static regex_t float_buf;
+
+static char* double_name = "^[ 	]*double[ 	]*";
+static regex_t double_buf;
+
+static char* short_name = "^[ 	]*short[ 	]*";
+static regex_t short_buf;
+
+static char* long_name = "^[ 	]*long[ 	]*";
+static regex_t long_buf;
+
+static char* unsigned_name = "^[ 	]*unsigned[ 	]*";
+static regex_t unsigned_buf;
+
+static char* signed_name = "^[ 	]*signed[ 	]*";
+static regex_t signed_buf;
+
+static char* void_name = "^[ 	]*void[ 	]*";
+static regex_t void_buf;
+
+static char* star_name = "^[ 	]*\\*[ 	]*";
+static regex_t star_buf;
+
+static char* struct_name = "^struct[ 	]*";
+static regex_t struct_buf;
+
+static char* union_name = "^struct\\>";
+static regex_t union_buf;
+
+
+
 macro_t* unit_macros[MAX_UNIQ_FNAMES];
 static macro_t* unknown_macro_list = NULL;
 
-static char* no_empty_params(char*);
+static const char* no_empty_params(const char*);
 
 static macro_function_t* grok_macro_function(char* rhs);
 struct typeinfo_t* grok_coercion(char* type_name);
@@ -19,7 +83,7 @@ static int match_param_name(char* formal_name, char* body_name);
 extern int auto_package;
 extern int ada_version;
 
-static void macro_enq(m) macro_t* m;
+static void macro_enq(macro_t* m)
 {
     macro_t *t, *last;
     unit_n unit;
@@ -46,8 +110,7 @@ static void macro_enq(m) macro_t* m;
     }
 }
 
-static void dump_macros(list, max) macro_t* list;
-int max;
+static void dump_macros(macro_t* list, int max)
 {
     macro_t* m;
     int i = 0;
@@ -73,7 +136,7 @@ void gen_macro_warnings()
     {
         for(m = unknown_macro_list; m; m = m->macro_next)
         {
-            printf("%s untranslated, %s line %d\n", m->macro_name,
+            fprintf(stderr, "warning: macro %s untranslated, %s line %d\n", m->macro_name,
                    file_name(m->macro_definition), (int)line_number(m->macro_definition));
         }
     }
@@ -119,7 +182,7 @@ static void gen_const_char(char *name, char* val)
     putf(": constant %s", ada_version < 1995 ? "Character" : "Char");
     put_string(" := ");
 
-    buf = char_to_string(val, true);
+    buf = char_to_string(val[0], true);
     if((strlen(buf) == 1) || !strcmp(buf, "\"\""))
     {
         put_char('\'');
@@ -253,8 +316,7 @@ process_macro_expression( node_pt expr )
 }
 #endif
 
-char* combined_name(name, ord) char* name;
-int ord;
+char* combined_name(char* name, int ord)
 {
     static char buf[200];
 
@@ -276,8 +338,7 @@ char* packaged_name(char* name, file_pos_t macro_pos, file_pos_t subp_pos)
     }
 }
 
-static int gen_mconst(m, import) macro_t* m;
-int import;
+static int gen_mconst(macro_t* m, int import)
 {
     cpp_eval_result_t result;
     int is_wide_string = 0;
@@ -394,7 +455,8 @@ after_coercion:
 
         if(first != NULL)
         {
-            gen_const_char(m->macro_ada_name, EVAL_INT(result));
+            char tmp = EVAL_INT(result);
+            gen_const_char(m->macro_ada_name, &tmp);
         }
         else if(import == -1)
         {
@@ -447,8 +509,7 @@ after_coercion:
     return false;
 }
 
-static void do_macro_body(buf, ret, coercion, fname, all, params) char *buf,
-*ret, *coercion, *fname, *all, *params;
+static void do_macro_body(char* buf, const char* ret, const char* coercion, const char* fname, const char* all, const char* params)
 {
     params = no_empty_params(params);
     if(coercion == NULL)
@@ -457,8 +518,7 @@ static void do_macro_body(buf, ret, coercion, fname, all, params) char *buf,
         sprintf(buf, "%s %s(%s%s%s);", ret, coercion, fname, all, params);
 }
 
-static char* coercion_name(has_coercion, coercion) int has_coercion;
-typeinfo_t* coercion;
+static char* coercion_name(int has_coercion, typeinfo_t* coercion)
 {
     char *s, *dot;
 
@@ -471,7 +531,7 @@ typeinfo_t* coercion;
     return s;
 }
 
-static symbol_t* bogus_param(new_param_name) char* new_param_name;
+static symbol_t* bogus_param(char* new_param_name)
 {
     symbol_t* param;
 
@@ -481,9 +541,7 @@ static symbol_t* bogus_param(new_param_name) char* new_param_name;
     return param;
 }
 
-static symbol_t* copy_nth_param(func_sym, n, new_param_name) symbol_t* func_sym;
-int n;
-char* new_param_name;
+static symbol_t* copy_nth_param(symbol_t* func_sym, int n, char* new_param_name)
 {
     symbol_t* param;
     int i;
@@ -500,9 +558,7 @@ char* new_param_name;
     return bogus_param(new_param_name);
 }
 
-static void gen_macro_func(func_sym, m, import) symbol_t* func_sym;
-int import;
-macro_t* m;
+static void gen_macro_func(symbol_t* func_sym, macro_t* m, int import)
 {
     symbol_t *macro_sym, *mparam, *last_mparam;
     typeinfo_t* coercion;
@@ -614,8 +670,7 @@ macro_t* m;
     }
 }
 
-static void check_interf(m, sym) macro_t* m;
-symbol_t* sym;
+static void check_interf(macro_t* m, symbol_t* sym)
 {
     /*
      * if a macro and a function have the same name,
@@ -708,8 +763,7 @@ void rethread_macros()
     }
 }
 
-void gen_macro_constants(m, import) macro_t* m;
-int import;
+void gen_macro_constants(macro_t* m, int import)
 {
     while(m != NULL)
     {
@@ -736,8 +790,7 @@ void import_macro_constants()
     }
 }
 
-void gen_macro_types(m, import) macro_t* m;
-int import;
+void gen_macro_types(macro_t* m, int import)
 {
     typeinfo_t* t;
 
@@ -793,8 +846,7 @@ void gen_macro_vars(macro_t* m, int import, int colonpos)
     }
 }
 
-void gen_macro_funcs(m, import) macro_t* m;
-int import;
+void gen_macro_funcs(macro_t* m, int import)
 {
     symbol_t* sym;
     char *tmp_name, *rename;
@@ -847,7 +899,7 @@ int import;
     }
 }
 
-void finish_macros(m) macro_t* m;
+void finish_macros(macro_t* m)
 {
     macro_t* next;
 
@@ -864,15 +916,11 @@ void finish_macros(m) macro_t* m;
  * Regular expression recognition routines
  * ***************************************/
 
-#define INIT register char* sp = instring;
-
-#include <regex.h>
 
 /*
  * Implementation of regexp.h's step() in terms of regex.h.
  */
 
-char *loc1, *loc2;
 
 static int step_impl(const char* string, const regex_t* expbuf)
 {
@@ -889,73 +937,22 @@ static int step_impl(const char* string, const regex_t* expbuf)
     }
 }
 
-#define step(string, expbuf) step_impl(string, &expbuf)
 
-int regerr(err) int err;
+
+int regerr(int err)
 {
     printf("regular expression error %d\n", err);
     exit(1);
 }
 
-/* used by grok_macro_function */
-static char* ident = "[a-zA-Z_][a-zA-Z0-9_]*";
-static regex_t ident_buf;
-static char* in_parens = "(.*)";
-static regex_t in_parens_buf;
-static char* next_arg = "[,)]";
-static regex_t next_arg_buf;
-
-/* used by grok_coercion */
-static char* int_name = "^[ 	]*int[ 	]*";
-static regex_t int_buf;
-
-static char* const_name = "^[ 	]*const[ 	]*";
-static regex_t const_buf;
-
-static char* char_name = "^[ 	]*char[ 	]*";
-static regex_t char_buf;
-
-static char* empty_params_name = "([ 	]*)";
-static regex_t empty_params_buf;
-
-static char* float_name = "^[ 	]*float[ 	]*";
-static regex_t float_buf;
-
-static char* double_name = "^[ 	]*double[ 	]*";
-static regex_t double_buf;
-
-static char* short_name = "^[ 	]*short[ 	]*";
-static regex_t short_buf;
-
-static char* long_name = "^[ 	]*long[ 	]*";
-static regex_t long_buf;
-
-static char* unsigned_name = "^[ 	]*unsigned[ 	]*";
-static regex_t unsigned_buf;
-
-static char* signed_name = "^[ 	]*signed[ 	]*";
-static regex_t signed_buf;
-
-static char* void_name = "^[ 	]*void[ 	]*";
-static regex_t void_buf;
-
-static char* star_name = "^[ 	]*\\*[ 	]*";
-static regex_t star_buf;
-
-static char* struct_name = "^struct[ 	]*";
-static regex_t struct_buf;
-
-static char* union_name = "^struct\\>";
-static regex_t union_buf;
-
-static char *new_str(loc1, loc2) char *loc1, *loc2;
+static char *new_str(char* sloc1, char* sloc2)
 {
-    int len = loc2 - loc1;
+    int len;
     char* p;
-
+    len = sloc2 - sloc1;
     assert(len > 0);
-    p = malloc(len + 1);
-    strncpy(p, loc1, len);
+    p = (char*)malloc(len + 1);
+    strncpy(p, sloc1, len);
     p[len] = '\0';
     return p;
 }
@@ -999,16 +996,17 @@ static void init_regex()
     first_time = 0;
 }
 
-static void unbalanced(loc) char* loc;
+static void unbalanced(char* loc)
 {
     printf("error, unbalanced parens %s\n", loc);
 }
 
-static char *skip_parens(loc, max) char *loc, *max;
+static char* skip_parens(char* loc, char* max)
 {
-    char c, *p;
-    int paren_count = 0;
-
+    char c;
+    char* p;
+    int paren_count;
+    paren_count = 0;
     p = loc;
     while((c = *p))
     {
@@ -1043,7 +1041,7 @@ static char *skip_parens(loc, max) char *loc, *max;
     return p;
 }
 
-static macro_function_t* grok_macro_function(rhs) char* rhs;
+static macro_function_t* grok_macro_function(char* rhs)
 {
     char *loc, *end_params, *before_func, *after_func, *star, *next;
     int siz;
@@ -1117,7 +1115,7 @@ static macro_function_t* grok_macro_function(rhs) char* rhs;
     return NULL;
 }
 
-struct typeinfo_t* grok_coercion(coercion_name) char* coercion_name;
+struct typeinfo_t* grok_coercion(char* coercion_name)
 {
     struct typeinfo_t* typ = NULL;
     char* p = coercion_name;
@@ -1248,7 +1246,7 @@ struct typeinfo_t* grok_coercion(coercion_name) char* coercion_name;
     return NULL; /* one that gets here is "void * const" */
 }
 
-static char* no_empty_params(params) char* params;
+static const char* no_empty_params(const char* params)
 {
     if(step(params, empty_params_buf))
         return "";
@@ -1256,7 +1254,7 @@ static char* no_empty_params(params) char* params;
         return params;
 }
 
-static int match_param_name(formal_name, body_name) char *formal_name, *body_name;
+static int match_param_name(char* formal_name, char* body_name)
 {
     char pattern[100];
     regex_t compiled;
@@ -1270,8 +1268,7 @@ static int match_param_name(formal_name, body_name) char *formal_name, *body_nam
 }
 
 #ifdef TEST_MACROS
-void main(argc, argv) int argc;
-char** argv;
+int main(int argc, char** argv)
 {
     macro_function_t* res;
     int i;

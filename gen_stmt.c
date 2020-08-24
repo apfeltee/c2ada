@@ -18,8 +18,7 @@
  * stmt, stmt_Slist, Compound, Expr, and Null
  ********************************************/
 
-static void do_null(indent, pos) int indent;
-file_pos_t pos;
+static void do_null(int indent, file_pos_t pos)
 {
     indent_to(indent);
     put_string("null;");
@@ -325,22 +324,22 @@ static void gen_break_label(int indent)
 
 case_alist_pt new_case_alist()
 {
-    return allocate(sizeof(case_alist));
+    return (case_alist_pt)allocate(sizeof(case_alist));
 }
 
 case_slist_pt new_case_slist()
 {
-    return allocate(sizeof(case_slist));
+    return (case_slist_pt)allocate(sizeof(case_slist));
 }
 
 case_blist_pt new_case_blist()
 {
-    return allocate(sizeof(case_blist));
+    return (case_blist_pt)allocate(sizeof(case_blist));
 }
 
 case_stmt_pt new_case_stmt()
 {
-    return allocate(sizeof(case_stmt));
+    return (case_stmt_pt)allocate(sizeof(case_stmt));
 }
 
 static void free_case_stmt(case_stmt_pt cp)

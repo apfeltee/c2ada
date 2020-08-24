@@ -118,8 +118,7 @@ static int fline()
     return line_number(curpos->scan_pos);
 }
 
-static void range_check(n, max, msg) int n, max;
-char* msg;
+static void range_check(int n, int max, char* msg)
 {
     if(n >= max)
     {
@@ -127,8 +126,7 @@ char* msg;
     }
 }
 
-static void unhandled(file, line) char* file;
-int line;
+static void unhandled(char* file, int line)
 {
     fatal(FN, LN, "Unhandled case %s:%d", file, line);
 }
@@ -146,19 +144,19 @@ static void bad_include()
     error(FN, LN, "Malformed include directive");
 }
 
-static void unexpected(msg) char* msg;
+static void unexpected(char* msg)
 {
     error(FN, LN, "Unexpected %s", msg);
 }
 
-static void unexpected_eof(msg) char* msg;
+static void unexpected_eof(char* msg)
 {
     char buf[128];
     sprintf(buf, "end of file %s", msg);
     unexpected(buf);
 }
 
-static char* charstr(c) int c;
+static char* charstr(int c)
 {
     if(is_eof(c))
         return "end of file";
@@ -175,8 +173,7 @@ static char* charstr(c) int c;
     return "crap";
 }
 
-static void expected(msg, c) char* msg;
-int c;
+static void expected(char* msg, int c)
 {
     error(FN, LN, "Expected %s got %s", msg, charstr(c));
 }
@@ -197,8 +194,7 @@ static int levels_nested()
     return level;
 }
 
-static void add_position_directive(buf, new_line) buffer_t* buf;
-int new_line;
+static void add_position_directive(buffer_t* buf, int new_line)
 {
     char b[40];
 
@@ -273,7 +269,7 @@ static void init_cppbuf()
     buf_init(&cppbuf);
 }
 
-static void rm_file_from_list(f) cpp_file_t* f;
+static void rm_file_from_list(cpp_file_t* f)
 {
     cpp_file_t *p, *last;
 
@@ -310,7 +306,7 @@ static cpp_file_t* find_open_file(char* path)
     return NULL;
 }
 
-void cpp_search_path(path) char* path;
+void cpp_search_path(char* path)
 {
     if(search_index >= MAX_SEARCH)
     {
@@ -469,7 +465,7 @@ static void push_file(buffer_t* buf, cpp_file_t* f)
     at_file_start = true;
 }
 
-int cpp_open(path) char* path;
+int cpp_open(char* path)
 {
     cpp_file_t* f;
 
@@ -512,9 +508,12 @@ void cpp_cleanup()
     buf_destroy(&cppbuf);
 }
 
-void cpp_set_state(newpos, new_state, savepos, save_state) scan_position_t *newpos,
-**savepos;
-cpp_control_state_t *new_state, *save_state;
+void cpp_set_state(
+    scan_position_t* newpos,
+    cpp_control_state_t* new_state,
+    scan_position_t** savepos,
+    cpp_control_state_t* save_state
+)
 {
     *savepos = curpos;
     *save_state = control_state;
@@ -522,7 +521,7 @@ cpp_control_state_t *new_state, *save_state;
     curpos = newpos;
 }
 
-static void kill_file(f) cpp_file_t* f;
+static void kill_file(cpp_file_t* f)
 {
     unmap_file(f->text, f->file_size);
     close(f->fd);
@@ -637,7 +636,7 @@ top:
     return result;
 }
 
-static void incline(sync) int sync;
+static void incline(int sync)
 {
     if(sync)
     {
@@ -658,7 +657,7 @@ static void incline(sync) int sync;
     }
 }
 
-static void check_position(buf) buffer_t* buf;
+static void check_position(buffer_t* buf)
 {
     if(parsing())
         return;
@@ -677,7 +676,7 @@ static void check_position(buf) buffer_t* buf;
     }
 }
 
-static void comment_start(buf) buffer_t* buf;
+static void comment_start(buffer_t* buf)
 {
     if(translate_comments && buf != NULL)
     {
@@ -686,7 +685,7 @@ static void comment_start(buf) buffer_t* buf;
     }
 }
 
-static void cpp_comment_start(buf) buffer_t* buf;
+static void cpp_comment_start(buffer_t* buf)
 {
     if(translate_comments && buf != NULL)
     {
@@ -695,8 +694,7 @@ static void cpp_comment_start(buf) buffer_t* buf;
     }
 }
 
-static int scan_white(buf, c) buffer_t* buf;
-int c;
+static int scan_white(buffer_t* buf, int c)
 {
     while(is_white(c))
     {
@@ -706,7 +704,7 @@ int c;
     return c;
 }
 
-static int skip_white(c) int c;
+static int skip_white(int c)
 {
     return scan_white(NULL, c);
 }
@@ -904,8 +902,7 @@ static int skip_to_end(int c)
     return scan_to_end(NULL, NULL, c);
 }
 
-static int finish_num(buf, c, mask) buffer_t* buf;
-int c, mask;
+static int finish_num(buffer_t* buf, int c, int mask)
 {
     while(!is_eof(c))
     {
@@ -918,8 +915,7 @@ int c, mask;
     return c;
 }
 
-static int maybe_magnitude(buf, c) buffer_t* buf;
-int c;
+static int maybe_magnitude(buffer_t* buf, int c)
 {
     if(c == 'e' || c == 'E')
     {
@@ -936,8 +932,7 @@ int c;
     return c;
 }
 
-static int scan_number(buf, c) buffer_t* buf;
-int c;
+static int scan_number(buffer_t* buf, int c)
 {
     add(buf, c);
 
@@ -1088,8 +1083,7 @@ static int scan_string(buffer_t* buf, int c)
     }
 }
 
-static int scan_char_const(buf, c) buffer_t* buf;
-int c;
+static int scan_char_const(buffer_t* buf, int c)
 {
     c = scan_to_del(buf, c, '\'');
     if(c != '\'')
@@ -1104,10 +1098,7 @@ int c;
     }
 }
 
-static int grok_formals(formals, nformals, buf, c) char*** formals;
-int* nformals;
-buffer_t* buf;
-int c;
+static int grok_formals(char*** formals, int* nformals, buffer_t* buf, int c)
 {
     char* f[256];
     char** fp;
@@ -1160,9 +1151,7 @@ static char* local_copy(buffer_t* buf, char* str, int size)
     return buf_get_str(buf);
 }
 
-static void grok_param(outbuf, idbuf, formals, nformals, xpect) buffer_t *outbuf, *idbuf;
-char* formals[];
-int nformals, xpect;
+static void grok_param(buffer_t* outbuf, buffer_t* idbuf, char* formals[], int nformals, int xpect)
 /* See if the name in idbuf is one of the formal parameters
  * of the macro whose body it occurred in.
  * If it is, place a special parameter ID sequence in outbuf;
@@ -1385,8 +1374,7 @@ static int grok_define(buffer_t* buf, int c)
     return c;
 } /* grok_define() */
 
-static int grok_if(buf, c) buffer_t* buf;
-int c;
+static int grok_if(buffer_t* buf, int c)
 {
     char ident[256];
     char* name;
@@ -1425,8 +1413,7 @@ int c;
     return c;
 }
 
-static int grok_elif(buf, c) buffer_t* buf;
-int c;
+static int grok_elif(buffer_t* buf, int c)
 {
     char ident[256];
     char* name;
@@ -1492,9 +1479,7 @@ int c;
     return c;
 }
 
-static int grok_ifdef(buf, c, sense) buffer_t* buf;
-int c;
-int sense;
+static int grok_ifdef(buffer_t* buf, int c, int sense)
 {
     char ident[128];
     char* name;
@@ -1529,8 +1514,7 @@ int sense;
     return skip_to_end(c);
 }
 
-static int grok_else(buf, c) buffer_t* buf;
-int c;
+static int grok_else(buffer_t* buf, int c)
 {
     int was_skipping = skipping();
 
@@ -1566,8 +1550,7 @@ int c;
     return skip_to_end(c);
 }
 
-static int grok_endif(buf, c) buffer_t* buf;
-int c;
+static int grok_endif(buffer_t* buf, int c)
 {
     int was_skipping = skipping();
 
@@ -1703,8 +1686,7 @@ failed:
     return -1; /* never reached: this just shuts up a warning */
 }
 
-static int grok_include(buf, lbuf, c) buffer_t *buf, *lbuf;
-int c;
+static int grok_include(buffer_t* buf, buffer_t* lbuf, int c)
 {
     char ident[64];
     char* name;
@@ -1745,8 +1727,7 @@ int c;
     return c;
 }
 
-static int grok_error(buf, c) buffer_t* buf;
-int c;
+static int grok_error(buffer_t* buf, int c)
 {
     char ident[128];
     char* msg;
@@ -1767,8 +1748,7 @@ int c;
     return c;
 }
 
-static int grok_undef(buf, c) buffer_t* buf;
-int c;
+static int grok_undef(buffer_t* buf, int c)
 {
     char ident[128];
     char* name;
@@ -1803,8 +1783,7 @@ struct resword
 };
 extern struct resword* cpp_keyword(char* str, int len);
 
-static int scan_directive(buf, c) buffer_t* buf;
-int c;
+static int scan_directive(buffer_t* buf, int c)
 {
     buffer_t lbuf;
     char ident[32];
@@ -1904,9 +1883,7 @@ int c;
     return c;
 }
 
-static int scan_actual(buf, c, level) buffer_t* buf;
-int c;
-int level;
+static int scan_actual(buffer_t* buf, int c, int level)
 /* Read an argument to a macro invocation. */
 {
     for(;;)
@@ -2041,10 +2018,7 @@ int level;
     }
 }
 
-static int grok_actuals(actuals, nactuals, buf, c) char*** actuals;
-int* nactuals;
-buffer_t* buf;
-int c;
+static int grok_actuals(char*** actuals, int* nactuals, buffer_t* buf, int c)
 /* Called from grok_macro_instance to scan the arguments
  * to a macro invocation.
  */
@@ -2093,9 +2067,7 @@ int c;
     return c;
 }
 
-static int push_expansion(mac, actuals, nactuals) macro_t* mac;
-char** actuals;
-int nactuals;
+static int push_expansion(macro_t* mac, char** actuals, int nactuals)
 /* Make a macro and its arguments the current text source. */
 {
     scan_position_t* npos;
@@ -2119,7 +2091,7 @@ int nactuals;
     return next_char();
 }
 
-static void push_string0(str) char* str;
+static void push_string0(char* str)
 {
     scan_position_t* npos;
 
@@ -2140,8 +2112,7 @@ static int push_string(char* str)
     return next_char();
 }
 
-static void grok_builtin_macro(buf, mac) buffer_t* buf;
-macro_t* mac;
+static void grok_builtin_macro(buffer_t* buf, macro_t* mac)
 {
     char buffer[32];
 
@@ -2201,8 +2172,7 @@ static int grok_macro_instance(buffer_t* buf, buffer_t* lbuf, int c, macro_t* ma
     return push_expansion(mac, actuals, nactuals);
 }
 
-static int parenthesized_ident(buf, c) buffer_t* buf;
-int c;
+static int parenthesized_ident(buffer_t* buf, int c)
 {
     for(;;)
     {
@@ -2231,8 +2201,7 @@ int c;
     }
 }
 
-static int grok_defined(buf, lbuf, c) buffer_t *buf, *lbuf;
-int c;
+static int grok_defined(buffer_t* buf, buffer_t* lbuf, int c)
 {
     char ident[128];
     char* name;
@@ -2374,8 +2343,7 @@ static int grok_actual_param(int param_ord)
     return push_string(param);
 }
 
-static int skip(buf, c) buffer_t* buf;
-int c;
+static int skip(buffer_t* buf, int c)
 {
     buffer_t lbuf;
 
@@ -2446,7 +2414,7 @@ int c;
     }
 }
 
-static int scan(buf) buffer_t* buf;
+static int scan(buffer_t* buf)
 {
     int c;
 
@@ -2534,7 +2502,7 @@ static int scan(buf) buffer_t* buf;
     }
 }
 
-int cpp_getc_from(buf) buffer_t* buf;
+int cpp_getc_from(buffer_t* buf)
 {
     while(buf_empty(buf))
     {

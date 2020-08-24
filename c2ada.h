@@ -9,6 +9,11 @@
 #include <assert.h>
 #include <limits.h>
 #include <math.h>
+#include <sys/stat.h>
+#include <ctype.h>
+#if defined(__unix__) || defined(__linux__) || defined(__CYGWIN__)
+    #include <unistd.h>
+#endif
 #include "hostinfo.h"
 
 #define NODE_FNAME(n) file_name(n->node_def)
@@ -544,7 +549,7 @@ typedef struct symbol_t
     unsigned int has_return : 1; /* body for function sym contains
                                   * a return statement.
                                   */
-    unsigned int private : 1; /* configured as private */
+    unsigned int isprivate : 1; /* configured as private */
     unsigned int declare_in_spec : 1;
     /* configured to ensure sym
      * has a declaration in the Ada spec
@@ -1031,11 +1036,11 @@ void reset_output_line();
 void reset_indent();
 void new_line();
 void indent_to(int);
-void put_string(char*);
+void put_string(const char*);
 void put_char(int);
 int cur_indent();
 
-void putf(char*, ...);
+void putf(const char*, ...);
 
 
 void gen_ada_type(symbol_t* sym);
@@ -1059,15 +1064,17 @@ char* string_name(bool is_wide);
 void gen_char_array(char* name, char* val, bool is_wide_string, bool is_const);
 
 int should_import();
-void print_string_value(char* val, int expected_len, bool c_string);
+void print_string_value(const char* val, int expected_len, bool c_string);
 void print_char_value(int val);
 
-void subtype_decl(char* subtype_name,
-                         char* package_name,
-                         char* type_name,
-                         int indent,
-                         node_t* ident,
-                         file_pos_t pos);
+void subtype_decl(
+    char* subtype_name,
+    char* package_name,
+    char* type_name,
+    int indent,
+    node_t* ident,
+    file_pos_t pos
+);
 
 void gen_local_func(symbol_t* sym, int indent);
 
@@ -1180,7 +1187,7 @@ symbol_t* new_local_func(typeinfo_pt return_type, symbol_t* decls, stmt_pt stmts
 
 void macro_init(int);
 void macro_undef(char*);
-void macro_def(char*, char*, int, int, char**, file_pos_t, char*);
+void macro_def(const char*, const char*, int, int, char**, file_pos_t, char*);
 macro_t* macro_find(char*);
 
 

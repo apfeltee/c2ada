@@ -35,7 +35,7 @@ void yield_typedef(bool flag)
     typedef_name_as_id = !flag;
 }
 
-void yyerror(msg) char* msg;
+void yyerror(char* msg)
 {
     error(FN, LN, msg);
 }
@@ -57,8 +57,7 @@ static void end_line()
     at_line_start = true;
 }
 
-static int magnitude(c, val) int c;
-host_int_t* val;
+static int magnitude(int c, host_int_t* val)
 {
     host_int_t m;
     int sign;
@@ -479,7 +478,7 @@ end_of_string:
     return STRING;
 }
 
-static int skip_to_end(c) int c;
+static int skip_to_end(int c)
 {
     for(;;)
     {
@@ -490,7 +489,7 @@ static int skip_to_end(c) int c;
     return c;
 }
 
-int skip_white(c) int c;
+int skip_white(int c)
 {
     while(is_white(c))
     {
@@ -499,7 +498,7 @@ int skip_white(c) int c;
     return c;
 }
 
-static int skip_c_comment(c) int c;
+static int skip_c_comment(int c)
 {
     int tmp;
 
@@ -540,7 +539,7 @@ static int skip_c_comment(c) int c;
     }
 }
 
-static int skip_cpp_comment(c) int c;
+static int skip_cpp_comment(int c)
 {
     for(;;)
     {
@@ -587,7 +586,7 @@ struct comment_block* fetch_comment_block()
 
 /**************************************************/
 
-static int save_c_comment(c) int c;
+static int save_c_comment(int c)
 {
     int tmp, result;
     buffer_t buf;
@@ -653,7 +652,7 @@ end_of_subp:
     return result;
 }
 
-int save_cpp_comment(c) int c;
+int save_cpp_comment(int c)
 {
     int result;
     buffer_t buf;
@@ -698,7 +697,7 @@ end_of_subp:
     return result;
 }
 
-static int scan_c_comment(c) int c;
+static int scan_c_comment(int c)
 {
     if(last_ident || at_line_start)
     {
@@ -707,7 +706,7 @@ static int scan_c_comment(c) int c;
     return skip_c_comment(c);
 }
 
-static int scan_cpp_comment(c) int c;
+static int scan_cpp_comment(int c)
 {
     if(last_ident)
     {
@@ -1091,7 +1090,7 @@ void cpp_init_contents(char* str);
 
 void scan_string_init(char* str)
 {
-    char* newstr = allocate(strlen(str) + 2);
+    char* newstr = (char*)allocate(strlen(str) + 2);
     sprintf(newstr, "%s%c", str, MARKER_CHAR);
     cpp_init_contents(newstr);
     yyc = MARKER_CHAR;

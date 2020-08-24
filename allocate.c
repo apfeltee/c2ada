@@ -14,7 +14,7 @@
 #undef NULL
 #define NULL 0
 
-char* new_string(str) char* str;
+char* new_string(char* str)
 {
     char* result;
     int len;
@@ -46,7 +46,7 @@ char* new_strf(char* str, ...)
     return new_string(buf);
 }
 
-void* allocate(size) size_t size;
+void* allocate(size_t size)
 {
     void* ptr;
 
@@ -57,7 +57,7 @@ void* allocate(size) size_t size;
     return ptr;
 }
 
-void deallocate(ptr) void* ptr;
+void deallocate(void* ptr)
 {
     free(ptr);
 }

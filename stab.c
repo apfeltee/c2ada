@@ -57,12 +57,12 @@ scope_id_t new_scope_id(scope_kind_t kind)
     if(!scope_tab_size)
     {
         scope_tab_size = 128;
-        scope_tab = allocate(sizeof(scope_info_pt) * scope_tab_size);
+        scope_tab = (scope_info_pt*)allocate(sizeof(scope_info_pt) * scope_tab_size);
     }
     else if(result == scope_tab_size)
     {
         scope_tab_size = 1.5 * scope_tab_size;
-        scope_tab = realloc(scope_tab, sizeof(scope_info_pt) * scope_tab_size);
+        scope_tab = (scope_info_pt*)realloc(scope_tab, sizeof(scope_info_pt) * scope_tab_size);
     }
 
     if(!free || free_index > SCOPE_INFO_BLOCKSIZE - 1)
@@ -121,7 +121,7 @@ symbol_t* new_sym(void)
     return decl;
 }
 
-symbol_t* find_sym(name) char* name;
+symbol_t* find_sym(char* name)
 {
     hash_t hash;
     int index;

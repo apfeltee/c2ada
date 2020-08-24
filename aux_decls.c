@@ -29,7 +29,8 @@ unchecked_cvt_pt unchecked_cvt_list, unchecked_cvt_tail;
 static void
 new_unchecked_cvt(symbol_t* sym, typeinfo_pt from_type, typeinfo_pt to_type, int unit, bool in_spec)
 {
-    unchecked_cvt_pt uc = allocate(sizeof(unchecked_cvt_t));
+    unchecked_cvt_pt uc;
+    uc = (unchecked_cvt_pt)allocate(sizeof(unchecked_cvt_t));
     uc->from_type = from_type;
     uc->to_type = to_type;
     uc->unit = unit;

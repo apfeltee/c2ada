@@ -59,7 +59,7 @@ static bool is_const_fp(node_pt n)
     }
 }
 
-static host_int_t const_int_val(n) node_t* n;
+static host_int_t const_int_val(node_t* n)
 {
     assert(is_const_int(n));
     switch(n->node_kind)
@@ -78,15 +78,15 @@ static host_int_t const_int_val(n) node_t* n;
 
 #define is_constant(x) (is_const_int(x) || is_const_fp(x))
 
-void free_node(n) node_t* n;
+void free_node(node_t* n)
 {
     assert(n->node_kind != _Ident);
-    n->node_kind = 0;
+    n->node_kind = (node_kind_t)0;
     n->node.unary = free_list;
     free_list = n;
 }
 
-static node_t* alloc_node(kind) node_kind_t kind;
+static node_t* alloc_node(node_kind_t kind)
 {
     node_t* n;
     int i;
@@ -340,7 +340,7 @@ node_pt new_pos_node(file_pos_t pos, node_kind_t kind, ...)
     return result;
 }
 
-static void promote(n) node_t* n;
+static void promote(node_t* n)
 {
     node_t *l, *r;
     host_float_t fv;
@@ -367,10 +367,10 @@ static void promote(n) node_t* n;
     }
 }
 
-static void reduce_binary();
+static void reduce_binary(node_t*);
 
 /* Force constants to RHS */
-static void distributive(n) node_t* n;
+static void distributive(node_t* n)
 {
     node_t *l, *r, *dr;
 
@@ -410,7 +410,7 @@ static void distributive(n) node_t* n;
     }
 }
 
-static void reduce_binary(n) node_t* n;
+static void reduce_binary(node_t* n)
 {
     node_t *l, *r;
 
@@ -608,7 +608,7 @@ static void reduce_binary(n) node_t* n;
     }
 }
 
-static void reduce_unary(n) node_t* n;
+static void reduce_unary(node_t* n)
 {
     node_t* l;
     typeinfo_t* typ;
@@ -736,7 +736,7 @@ void reduce_node(node_pt n)
     }
 }
 
-node_t *access_to(ptr, decl) node_t *ptr, *decl;
+node_t *access_to(node_t *ptr, node_t* decl)
 {
     node_t* n;
 
@@ -766,7 +766,7 @@ node_t *access_to(ptr, decl) node_t *ptr, *decl;
     return ptr;
 }
 
-node_t* id_from_typedef(typ) typeinfo_t* typ;
+node_t* id_from_typedef(typeinfo_t* typ)
 {
     symbol_t* basetype;
 

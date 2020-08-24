@@ -98,7 +98,7 @@ SRCS	        = allocate.c \
 		aux_decls.c \
 		buffer.c \
 		c_perf.c \
-		cbfe.c \
+		main.c \
 		context.c \
 		cpp.c \
 		cpp_eval.c \
@@ -146,7 +146,7 @@ COMMON_OBJS	= $(COMMON_SRCS:.c=.o)
 FESRCS		= \
 		ada_types.c \
 		aux_decls.c \
-	        cbfe.c \
+		main.c \
 		comment.c \
 		configure.c \
 		context.c \

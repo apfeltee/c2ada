@@ -1,6 +1,8 @@
 
+
 #include "c2ada.h"
 #include "hostinfo.h"
+
 
 extern int auto_package;
 extern int ada_version;
@@ -79,6 +81,11 @@ static int unit_count = 0;
 
 static int nesting_table[MAX_NEST];
 static int nest_level;
+
+void format_to_spec();
+bool unchecked_conversions_to_spec(unit_n unit);
+void output_to_spec(void);
+void format_to_body();
 
 unit_n current_unit(void)
 {
@@ -259,7 +266,7 @@ void unit_start_gen(void)
     merge_direct_refs();
 }
 
-static char* gen_unit_name(path) char* path;
+static char* gen_unit_name(char* path)
 {
     char buf[PATH_MAX];
     char res[PATH_MAX];
@@ -366,11 +373,11 @@ static unit_map* decode_unit_map(void)
         {
             if(first == NULL)
             {
-                first = current = allocate(sizeof(unit_map));
+                first = current = (unit_map*)allocate(sizeof(unit_map));
             }
             else
             {
-                current->next = allocate(sizeof(unit_map));
+                current->next = (unit_map*)allocate(sizeof(unit_map));
                 current = current->next;
             }
             fscanf(f, "%s %s %s %s\n", buf1, buf2, buf3, buf4);
@@ -398,8 +405,7 @@ static void dump_unit_map(unit_map* first)
     }
 }
 
-static unit_map* find_unit(first, iname) unit_map* first;
-char* iname;
+static unit_map* find_unit(unit_map* first, char* iname)
 {
     while(first)
     {
