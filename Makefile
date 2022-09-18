@@ -57,6 +57,8 @@ PYTHON_LIB	?= $(PYTHON_TOP)/lib/$(PYTHON_VER)
 #
 PYTHON_INCLUDE	?= $(PYTHON_TOP)/include/$(PYTHON_VER)
 
+PYTHON_CONFIG  ?= $(shell $(PYTHON_VER)-config --configdir)
+
 ## YACC should be set to your yacc equivalent if it's not called
 ## 'yacc'. For example,
 ##   YACC=bison; export YACC
@@ -298,8 +300,8 @@ y.tab.c:	grammar.y
 #--------------------------------------------------------------------------
 # Configuration file for Python module set
 
-config.o : $(PYTHON_LIB)/config/config.c
-	$(CC) $(CFLAGS) -DNO_MAIN -c $(PYTHON_LIB)/config/config.c
+config.o : $(PYTHON_CONFIG)/config.c
+	$(CC) $(CFLAGS) -DNO_MAIN -c $<
 
 #--------------------------------------------------------------------------
 # Dependencies
